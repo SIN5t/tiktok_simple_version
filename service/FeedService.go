@@ -37,7 +37,7 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 			//redis Set类型, key主要是当前访问用户的id，val是当前访问用户点赞的各个视频id
 			// TODO 关注一下Hset保存以上信息的地方，下面是直接取出了
 			isFavorite := dao.RedisClient.
-				SIsMember(context.Background(), util.VideoFavoriteKey+strconv.FormatInt(userIdInt64, 10), video.Id).
+				SIsMember(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), video.Id).
 				Val()
 
 			if isFavorite {
@@ -48,7 +48,7 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 			//类似的，上面是点赞，这里是关注
 			//key主要是当前用户的id，Hset的val是多个值：当前用户关注的作者的id
 			isFollowed := dao.RedisClient.
-				SIsMember(context.Background(), util.AuthorFollowedKey+string(userIdInt64), video.AuthorId).
+				SIsMember(context.Background(), util.AuthorFollowedKeyPrefix+string(userIdInt64), video.AuthorId).
 				Val()
 
 			if isFollowed {
@@ -56,6 +56,8 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 				video.Author.IsFollow = true
 			}
 		}
+		//未登入。默认显示没点赞、没关注。也就是直接数据库查询出来的结果：false
+
 	}
 	return
 }

@@ -12,7 +12,7 @@ import (
 	向数据库中插入记录条数
 	倒叙返回指定id的作者的所有作品，用于个人界面展示
 */
-var staticRooterUrl = util.StaticRooter
+var staticRooterUrl = util.StaticRooterPrefix
 
 // InsertVideos 向数据库插入视频信息
 func InsertVideos(videoName string, title string, coverName string, userId int64, coverGenerateStatus bool) error {

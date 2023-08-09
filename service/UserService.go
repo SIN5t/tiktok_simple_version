@@ -92,7 +92,22 @@ func Register(username, password string) (id int64, err error) {
 	}
 	user.Pwd = string(pwd)
 	dao.DB.Model(&domain.User{}).Create(&user)
-	//为每个用户生成一个token作为唯一标识存储在redis
+
+	/*	//用户数据保存到数据库后，提交到redis
+		//定义要设置的哈希字段及其值
+		hashFields := map[string]interface{}{
+			"Name":           user.Name,
+			"TotalFavorited": user.TotalFavorited,
+			"FavoriteCount":  user.FavoriteCount,
+			"FollowCount":    user.FollowCount,
+
+		}
+		dao.RedisClient.HMSet(context.Background(),
+			util.UserHashKeyPrefix+strconv.FormatInt(user.Id, 10), //key
+			hashFields, //value
+		)
+	*/
+	//为每个用户生成一个token作为唯一标识存储在redis TODO 注册逻辑？登入逻辑？
 	token := SaveTokenToRedis(user.Id)
 	fmt.Println(token)
 	//将没有加密的信息用户信息存在redis中去减轻mysql查询的压力

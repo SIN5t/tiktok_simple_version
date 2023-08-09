@@ -56,5 +56,4 @@ func FavoriteList(c *gin.Context) {
 		})
 	}
 	service.FavoriteList(userIdInt64)
-
 }

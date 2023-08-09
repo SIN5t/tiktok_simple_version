@@ -28,12 +28,12 @@ func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err erro
 		//1. 在redis维护的用户点赞列表中加上该视频id
 		// 先判断该用户点赞了没有
 		isFavorite := dao.RedisClient.
-			SIsMember(context.Background(), util.VideoFavoriteKey+strconv.FormatInt(userIdInt64, 10), videoIdInt64).
+			SIsMember(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), videoIdInt64).
 			Val()
 		if !isFavorite {
 			//没点赞,向当前用户点赞列表中加入该视频
 			dao.RedisClient.
-				SAdd(context.Background(), util.VideoFavoriteKey+strconv.FormatInt(userIdInt64, 10), videoIdInt64)
+				SAdd(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), videoIdInt64)
 		}
 
 		//2.total_favorite(当前用户获赞数量）++  使用redis做，TODO 数据库中可以不存这个字段
@@ -72,13 +72,13 @@ func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err erro
 	} else if actionType == 2 { //取消点赞
 		//1. 在redis维护的用户点赞列表中加上该视频id
 		isFavVideo := dao.RedisClient.
-			SIsMember(context.Background(), util.VideoFavoriteKey+strconv.FormatInt(userIdInt64, 10), videoIdInt64).
+			SIsMember(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), videoIdInt64).
 			Val()
 		if !isFavVideo { //本来就没点赞
 			return errors.New("用户未曾点赞，无法取消点赞")
 		}
 		//点赞了现在取消
-		dao.RedisClient.SRem(context.Background(), util.VideoFavoriteKey+strconv.FormatInt(userIdInt64, 10), videoIdInt64)
+		dao.RedisClient.SRem(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), videoIdInt64)
 
 		//2.total_favorite(当前用户获赞数量）++  使用redis做，TODO 数据库中可以不存这个字段
 		//Incr 方法用于递增 Redis 中的整数值键。如果键不存在，它会将键的值初始化为 0，然后再执行增加操作
@@ -119,7 +119,7 @@ func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err erro
 func FavoriteList(userIdInt64 int64) (videoList []domain.Video, err error) {
 
 	userFavoriteVideosIdStrArr, err := dao.RedisClient.
-		SMembers(context.Background(), util.VideoFavoriteKey+strconv.FormatInt(userIdInt64, 10)).
+		SMembers(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10)).
 		Result()
 	if err != nil {
 		return nil, err
