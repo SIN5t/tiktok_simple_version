@@ -100,7 +100,6 @@ func Register(username, password string) (id int64, err error) {
 			"TotalFavorited": user.TotalFavorited,
 			"FavoriteCount":  user.FavoriteCount,
 			"FollowCount":    user.FollowCount,
-
 		}
 		dao.RedisClient.HMSet(context.Background(),
 			util.UserHashKeyPrefix+strconv.FormatInt(user.Id, 10), //key

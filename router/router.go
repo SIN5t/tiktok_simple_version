@@ -1,11 +1,11 @@
-package main
+package router
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/goTouch/TicTok_SimpleVersion/controller"
 )
 
-func initRouter(r *gin.Engine) {
+func InitRouter(r *gin.Engine) {
 	// public directory is used to serve static resources
 	r.Static("/static", "./public")
 

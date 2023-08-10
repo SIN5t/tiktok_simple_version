@@ -12,8 +12,8 @@ import (
 )
 
 // Favorite
-//　业务需求：注意看官方user中，有total_favorite(当前用户获赞数量）
-//意味着，当前用户点赞的时候：视频作者获赞数量++、自己点赞数量++　TODO　favorite_count（该用户点赞数量可以用redis SCard(ctx, "myset").Result()统计)
+// 　业务需求：注意看官方user中，有total_favorite(当前用户获赞数量）
+// 意味着，当前用户点赞的时候：视频作者获赞数量++、自己点赞数量++　TODO　favorite_count（该用户点赞数量可以用redis SCard(ctx, "myset").Result()统计)
 // 在video中，有FavoriteCount、IsFavorite（由redis操作，每个用户维护自己点赞的视频列表在redis中）
 func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err error) {
 	///第一步一定要查userIdInt64是否合法，videoId也要查
@@ -36,7 +36,7 @@ func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err erro
 				SAdd(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), videoIdInt64)
 		}
 
-		//2.total_favorite(当前用户获赞数量）++  使用redis做，TODO 数据库中可以不存这个字段
+		//2.total_favorite(当前用户获赞数量）++  使用redis做。 TODO 隔一段时间做定时任务保存到数据库中
 		//Incr 方法用于递增 Redis 中的整数值键。如果键不存在，它会将键的值初始化为 0，然后再执行增加操作
 		dao.RedisClient.Incr(context.Background(), util.AuthorBeLikedNum+strconv.FormatInt(userIdInt64, 10))
 

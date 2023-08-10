@@ -50,9 +50,9 @@ func InitDB() {
 	})
 	// 创建 Redis 客户端配置
 	redisConfig := &redis.Options{
-		Addr:     "127.0.0.1:6379", // Redis 服务器地址和端口
-		Password: "",               // Redis 认证密码，如果没有密码则为空字符串
-		DB:       0,                // 选择使用的数据库，默认为 0
+		Addr:     "192.168.157.128:6379", // Redis 服务器地址和端口
+		Password: "123456",               // Redis 认证密码，如果没有密码则为空字符串
+		DB:       0,                      // 选择使用的数据库，默认为 0
 	}
 
 	// 初始化 Redis 客户端
