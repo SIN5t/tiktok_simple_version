@@ -11,7 +11,7 @@ import (
 )
 
 // FavoriteAction no practical effect, just check if token is valid
-//前端接口文档中，前端有带有token，videoId，actionType(1表示点赞，2表示取消点赞)三个参数，利用好
+// 前端接口文档中，前端有带有token，videoId，actionType(1表示点赞，2表示取消点赞)三个参数，利用好
 func FavoriteAction(c *gin.Context) {
 	//实现点赞三个数据是必要的，点赞用户的id（从token中，或者gin context拿？），点赞视频的id，是否点赞
 
@@ -45,7 +45,7 @@ func FavoriteAction(c *gin.Context) {
 }
 
 // FavoriteList 登录用户的所有点赞视频。
-//request 中有token和user_id，可以直接拿
+// request 中有token和user_id，可以直接拿
 func FavoriteList(c *gin.Context) {
 	userIdStr := c.Query("user_id") //取出来是string类型！
 	userIdInt64, err := strconv.ParseInt(userIdStr, 10, 64)
@@ -55,5 +55,16 @@ func FavoriteList(c *gin.Context) {
 			VideoList: nil,
 		})
 	}
-	service.FavoriteList(userIdInt64)
+	videoList, err := service.FavoriteList(userIdInt64)
+	if err != nil {
+		c.JSON(http.StatusOK, domain.VideoListResponse{
+			Response:  domain.Response{StatusCode: 1, StatusMsg: "视频错误"},
+			VideoList: nil,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, domain.VideoListResponse{
+		Response:  domain.Response{0, "成功查询到点赞视频"},
+		VideoList: videoList,
+	})
 }

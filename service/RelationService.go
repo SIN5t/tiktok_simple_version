@@ -83,3 +83,43 @@ func getUserInfoName(userIdInt64 int64) (res string, err error) {
 	}
 	return res, nil
 }
+
+// FollowList 返回当前用户关注的人。user中只分装name与id
+func FollowList(userIdStr string) (userList []domain.User, err error) {
+
+	//查询用户关注的Hash表. 注意HGetAll返回的是map[string]string类型
+	userStringMap, err := dao.RedisClient.
+		HGetAll(context.Background(), util.UserFollowHashPrefix+userIdStr).
+		Result()
+	if err != nil || userStringMap == nil {
+		return nil, errors.New("redis searching for userFollowList error")
+	}
+	//遍历
+	for userIdStr, username := range userStringMap {
+		//一般不会解析错误,忽略错误
+		userIdInt64, _ := strconv.ParseInt(userIdStr, 10, 64)
+		user := domain.User{
+			Id:   userIdInt64,
+			Name: username,
+		}
+		userList = append(userList, user)
+	}
+
+	return userList, nil
+}
+func FollowerList(userIdStr string) (userList []domain.User, err error) {
+	userMap := dao.RedisClient.HGetAll(context.Background(), util.UserFollowersHashPrefix+userIdStr).Val()
+
+	for userId, userName := range userMap {
+		if err != nil || userMap == nil {
+			return nil, errors.New("redis searching for userFollowList error")
+		}
+		userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
+		user := domain.User{
+			Id:   userIdInt64,
+			Name: userName,
+		}
+		userList = append(userList, user)
+	}
+	return userList, nil
+}
