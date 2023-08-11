@@ -1,25 +1,17 @@
 package controller
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
 	"github.com/goTouch/TicTok_SimpleVersion/service"
-	"github.com/goTouch/TicTok_SimpleVersion/util"
-	"log"
-	"net/http"
-	"strconv"
 )
 
 // Feed same demo videos list for every request
 func Feed(c *gin.Context) {
-
-	//先试试取出userId,如果token里面没有，这里返回-1的userId
-	userIdInt64, err := util.VerifyTokenReturnUserIdInt64(c)
-	if err != nil {
-		log.Println(err)
-		log.Println("feed接口：当前用户token核验失败")
-	}
-
+	userId := c.GetInt64("userId")
 	//根据接口文档，前端传来的request中有token和latest_time， 这里一个用于存当前用户id，一个存下次视频时间戳
 	//tokenReq := c.Query("token")
 	latestTimeReq := c.Query("latest_time")                         //字符串类型
@@ -29,7 +21,7 @@ func Feed(c *gin.Context) {
 		return
 	}
 
-	videoList, nextTimeInt64 := service.FeedService(userIdInt64, latestTimeInt64)
+	videoList, nextTimeInt64 := service.FeedService(userId, latestTimeInt64)
 	if len(videoList) != 0 { //说明查到了视频
 		c.JSON(http.StatusOK, domain.FeedResponse{
 			Response:  domain.Response{StatusCode: 0, StatusMsg: "成功查询视频并返回"},

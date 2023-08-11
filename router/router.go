@@ -3,28 +3,49 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/goTouch/TicTok_SimpleVersion/controller"
+	"github.com/goTouch/TicTok_SimpleVersion/middleware"
 )
 
 func InitRouter(r *gin.Engine) {
 	// public directory is used to serve static resources
 	r.Static("/static", "./public")
 
-	apiRouter := r.Group("/douyin")
+	apiR := r.Group("/douyin")
 
-	// basic apis
-	apiRouter.GET("/feed/", controller.Feed)
-	apiRouter.POST("/user/register/", controller.Register)
-	apiRouter.POST("/user/login/", controller.Login)
+	// feed
+	feedR := apiR.Group("/feed").Use(middleware.AuthJWTOptional)
+	feedR.GET("/", controller.Feed)
 
-	// extra apis - I
-	apiRouter.POST("/favorite/action/", controller.FavoriteAction)
-	apiRouter.GET("/favorite/list/", controller.FavoriteList)
-	//apiRouter.POST("/comment/action/", controller.CommentAction)
-	//apiRouter.GET("/comment/list/", controller.CommentList)
+	// user
+	userR := apiR.Group("/user")
+	userR.POST("/register/", controller.Register)
+	userR.POST("/login/", controller.Login)
+	userR.GET("/", middleware.AuthJWT, controller.User)
 
-	// extra apis - II
-	apiRouter.POST("/relation/action/", controller.Action)
-	apiRouter.GET("/relation/follow/list/", controller.FollowList)
-	apiRouter.GET("/relation/follower/list/", controller.FollowerList)
-	//apiRouter.GET("/relation/friend/list/", controller.FriendList)
+	// publish
+	pubR := apiR.Group("/publish").Use(middleware.AuthJWT)
+	pubR.POST("/action") // TODO
+	pubR.GET("/list")    // TODO
+
+	// favorite
+	favR := apiR.Group("/favorite").Use(middleware.AuthJWT)
+	favR.POST("/action/", controller.FavoriteAction)
+	favR.GET("/list/", controller.FavoriteList)
+
+	// comment
+	cmtR := apiR.Group("/comment").Use(middleware.AuthJWT)
+	cmtR.POST("/action/", controller.CommentAction)
+	cmtR.GET("/list/", controller.CommentList)
+
+	// relation
+	rltR := apiR.Group("/relation").Use(middleware.AuthJWT)
+	rltR.POST("/action/", controller.FollowAction)
+	rltR.GET("/follow/list/", controller.FollowList)
+	rltR.GET("/follower/list/", controller.FollowerList)
+	rltR.GET("/friend/list/") // TODO
+
+	// message
+	msgR := apiR.Group("/message").Use(middleware.AuthJWT)
+	msgR.GET("/chat")    // TODO
+	msgR.POST("/action") // TODO
 }

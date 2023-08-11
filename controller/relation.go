@@ -1,24 +1,20 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/goTouch/TicTok_SimpleVersion/domain"
-	"github.com/goTouch/TicTok_SimpleVersion/service"
-	"github.com/goTouch/TicTok_SimpleVersion/util"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/goTouch/TicTok_SimpleVersion/domain"
+	"github.com/goTouch/TicTok_SimpleVersion/service"
 )
 
 //Relation
 
-// Action 关注操作action_type : 1是关注，2是取消关注
-func Action(c *gin.Context) {
-	userIdInt64, err := util.VerifyTokenReturnUserIdInt64(c)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+// FollowAction 关注操作action_type : 1是关注，2是取消关注
+func FollowAction(c *gin.Context) {
+	userIdInt64 := c.GetInt64("userId")
 
 	toUserIdStr := c.Query("to_user_id")
 	actionTypeStr := c.Query("action_type")
@@ -34,7 +30,7 @@ func Action(c *gin.Context) {
 	//忽略错误，前端传来的关注按钮一般不会错
 	actionTypeInt, _ := strconv.Atoi(actionTypeStr)
 
-	err = service.Action(userIdInt64, toUserIdInt64, actionTypeInt)
+	err = service.FollowAction(userIdInt64, toUserIdInt64, actionTypeInt)
 
 }
 

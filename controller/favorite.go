@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/goTouch/TicTok_SimpleVersion/domain"
-	"github.com/goTouch/TicTok_SimpleVersion/service"
-	"github.com/goTouch/TicTok_SimpleVersion/util"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/goTouch/TicTok_SimpleVersion/domain"
+	"github.com/goTouch/TicTok_SimpleVersion/service"
 )
 
 // FavoriteAction no practical effect, just check if token is valid
@@ -16,11 +16,7 @@ func FavoriteAction(c *gin.Context) {
 	//实现点赞三个数据是必要的，点赞用户的id（从token中，或者gin context拿？），点赞视频的id，是否点赞
 
 	//验证token，合法的话返回userId
-	userIdInt64, err := util.VerifyTokenReturnUserIdInt64(c)
-	if err != nil {
-		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-		log.Println(err)
-	}
+	userIdInt64 := c.GetInt64("userId")
 
 	videoIdInt64, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
 	if err != nil {
@@ -64,7 +60,7 @@ func FavoriteList(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, domain.VideoListResponse{
-		Response:  domain.Response{0, "成功查询到点赞视频"},
+		Response:  domain.Response{StatusCode: 0},
 		VideoList: videoList,
 	})
 }
