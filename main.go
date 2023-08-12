@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-
+	dao.InitMinio()
 	dao.InitDB()
 	fmt.Print("数据库执行成功")
 
