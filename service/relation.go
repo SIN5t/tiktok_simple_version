@@ -100,12 +100,12 @@ func FollowList(userIdStr string) (userList []domain.User, err error) {
 		//一般不会解析错误,忽略错误
 		userIdInt64, _ := strconv.ParseInt(userIdStr, 10, 64)
 		user := domain.User{
-			Id:   userIdInt64,
-			Name: username,
+			Id:       userIdInt64,
+			Name:     username,
+			IsFollow: true,
 		}
 		userList = append(userList, user)
 	}
-
 	return userList, nil
 }
 func FollowerList(userIdStr string) (userList []domain.User, err error) {
@@ -117,8 +117,9 @@ func FollowerList(userIdStr string) (userList []domain.User, err error) {
 		}
 		userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
 		user := domain.User{
-			Id:   userIdInt64,
-			Name: userName,
+			Id:       userIdInt64,
+			Name:     userName,
+			IsFollow: true,
 		}
 		userList = append(userList, user)
 	}
