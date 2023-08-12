@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"github.com/goTouch/TicTok_SimpleVersion/util"
 	"log"
 
 	"github.com/minio/minio-go/v7"
@@ -9,12 +10,7 @@ import (
 )
 
 const (
-	endpoint          = "127.0.0.1:9000"
-	accessKeyID       = "minioadmin"
-	secretAccessKey   = "minioadmin"
-	useSSL            = false
-	VidioBucketName   = "vidio"
-	PictureBucketName = "picture"
+	useSSL = false
 )
 
 var (
@@ -24,31 +20,41 @@ var (
 )
 
 func InitMinio() {
-	MinioClient, err = minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+	MinioClient, err = minio.New(util.GetMinioEndpoint(), &minio.Options{
+		Creds:  credentials.NewStaticV4(util.GetMinioAccessKeyID(), util.GetMinioSecretAccessKey(), ""),
 		Secure: useSSL})
 	if err != nil {
 		log.Fatalln("minio连接错误: ", err)
 	} else {
 		log.Printf("%#v\n", MinioClient)
 		log.Println(MinioClient.EndpointURL())
-		createBucket(VidioBucketName)
-		createBucket(PictureBucketName)
+		createBucket(util.VidioBucketName)
+		createBucket(util.PictureBucketName)
 	}
 
 }
 func createBucket(bucketName string) {
 
 	err = MinioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: "local"})
+	s := "{\"Version\":\"2012-10-17\"," +
+		"\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":" +
+		"{\"AWS\":[\"*\"]},\"Action\":[\"s3:ListBucket\",\"s3:ListBucketMultipartUploads\"," +
+		"\"s3:GetBucketLocation\"],\"Resource\":[\"arn:aws:s3:::" + bucketName +
+		"\"]},{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:PutObject\",\"s3:AbortMultipartUpload\",\"s3:DeleteObject\",\"s3:GetObject\",\"s3:ListMultipartUploadParts\"],\"Resource\":[\"arn:aws:s3:::" +
+		bucketName +
+		"/*\"]}]}"
 	if err != nil {
 		// 查询桶是否存在，如果存在则打印已存在，否则打印错误
 		exists, errBucketExists := MinioClient.BucketExists(ctx, bucketName)
+
 		if errBucketExists == nil && exists {
+			MinioClient.SetBucketPolicy(ctx, bucketName, s)
 			log.Printf("已存在 %s\n", bucketName)
 		} else {
 			log.Fatalln("minio创建错误 %s", err)
 		}
 	} else {
+		MinioClient.SetBucketPolicy(ctx, bucketName, s)
 		log.Printf("成功创建 %s\n", bucketName)
 	}
 }

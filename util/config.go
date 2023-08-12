@@ -17,6 +17,8 @@ const (
 	UserFollowersHashPrefix = "USER_FOLLOWERS_KEY" //当前用户的粉丝列表。field是粉丝id,value是粉丝名字。
 
 	VideoFavoriteKeyPrefix = "VIDEO_FAVORITE_KEY:" //用户角度，用处：该用户点赞视频
+	VidioBucketName        = "vidio"
+	PictureBucketName      = "picture"
 )
 
 const projectId = "tiktok:" // 项目标识符
@@ -37,6 +39,9 @@ var (
 	mysql_addr = projectEnv("mysql_addr", "localhost:3306")
 	mysql_name = projectEnv("mysql_name", "tiktok")
 
+	endpoint             = projectEnv("endpoint", "127.0.0.1:9000")
+	accessKeyID          = projectEnv("accessKeyID", "minioadmin")
+	secretAccessKey      = projectEnv("secretAccessKey", "minioadmin")
 	redis_addr           = projectEnv("redis_addr", "localhost:6379", "192.168.157.128:6379")
 	redis_addr_linux     = projectEnv("redis_addr", "192.168.157.128:6379")
 	redis_pswd           = projectEnv("redis_pswd", "123456")
@@ -71,4 +76,13 @@ func GetRedisSentinelAddrs() []string {
 
 func JWTSecret() string {
 	return jwt_secret
+}
+func GetMinioEndpoint() string {
+	return endpoint
+}
+func GetMinioAccessKeyID() string {
+	return accessKeyID
+}
+func GetMinioSecretAccessKey() string {
+	return secretAccessKey
 }

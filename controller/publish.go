@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goTouch/TicTok_SimpleVersion/dao"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
+	"github.com/goTouch/TicTok_SimpleVersion/util"
 	"github.com/minio/minio-go/v7"
 	"io/ioutil"
 	"log"
@@ -18,7 +19,7 @@ import (
 // 既然是发布视频，首先需要校验token，登入的问题
 // Publish 获取用户投稿的视频并保存到本地
 func Publish(c *gin.Context) {
-	//id, err := util.VerifyTokenReturnUserIdInt64(c)
+	//id := c.GetInt64("userId")
 	//if err != nil {
 	//	log.Println(err)
 	//	log.Println("Publish接口：当前用户token核验失败")
@@ -63,11 +64,11 @@ func Publish(c *gin.Context) {
 	log.Println(dao.MinioClient.EndpointURL())
 	_, err = dao.MinioClient.PutObject(
 		c,
-		dao.VidioBucketName,
+		util.VidioBucketName,
 		filename,
 		bytes.NewBuffer(miniodata),
 		int64(len(miniodata)),
-		minio.PutObjectOptions{},
+		minio.PutObjectOptions{UserMetadata: map[string]string{"x-amz-acl": "public-read"}},
 	)
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{
@@ -77,14 +78,13 @@ func Publish(c *gin.Context) {
 		return
 	}
 	reqParams := make(url.Values)
-	reqParams.Set("response-content-disposition", "attachment; filename=\"your-filename.txt\"")
-	presignedURL, err := dao.MinioClient.PresignedGetObject(c, dao.VidioBucketName, filename, time.Duration(1000)*time.Second, reqParams)
+	presignedURL, err := dao.MinioClient.PresignedGetObject(c, util.VidioBucketName, filename, time.Duration(1000)*time.Second, reqParams)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	log.Println(presignedURL)
 	c.JSON(http.StatusOK, domain.Response{
-		StatusCode: 1,
+		StatusCode: 0,
 		StatusMsg:  presignedURL.String(),
 	})
 	return
