@@ -26,5 +26,5 @@ type UserResponse struct {
 
 type UserFollowListResponse struct {
 	Response
-	UserFollowList []User
+	UserFollowList []User `json:"user_list"` //标签（Tag），用于指定结构体字段在序列化为JSON格式时的命名规则,之前漏写，导致前端无法识别！
 }

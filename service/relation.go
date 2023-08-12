@@ -100,9 +100,11 @@ func FollowList(userIdStr string) (userList []domain.User, err error) {
 		//一般不会解析错误,忽略错误
 		userIdInt64, _ := strconv.ParseInt(userIdStr, 10, 64)
 		user := domain.User{
-			Id:       userIdInt64,
-			Name:     username,
-			IsFollow: true,
+			Id:            userIdInt64,
+			Name:          username,
+			IsFollow:      true,
+			FollowCount:   dao.RedisClient.HLen(context.Background(), util.UserFollowHashPrefix+userIdStr).Val(),
+			FollowerCount: dao.RedisClient.HLen(context.Background(), util.UserFollowHashPrefix+userIdStr).Val(),
 		}
 		userList = append(userList, user)
 	}
@@ -117,9 +119,11 @@ func FollowerList(userIdStr string) (userList []domain.User, err error) {
 		}
 		userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
 		user := domain.User{
-			Id:       userIdInt64,
-			Name:     userName,
-			IsFollow: true,
+			Id:            userIdInt64,
+			Name:          userName,
+			IsFollow:      true,
+			FollowCount:   dao.RedisClient.HLen(context.Background(), util.UserFollowersHashPrefix+userIdStr).Val(),
+			FollowerCount: dao.RedisClient.HLen(context.Background(), util.UserFollowersHashPrefix+userIdStr).Val(),
 		}
 		userList = append(userList, user)
 	}
