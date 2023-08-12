@@ -52,7 +52,7 @@ func AddComment(videoId, userId int64, content string) (comment domain.Comment, 
 			return err
 		}
 
-		err = dao.DB.Model(&domain.Comment{}).Create(&comment).Error
+		err = tx.Model(&domain.Comment{}).Create(&comment).Error
 		if err != nil {
 			return err
 		}
@@ -92,7 +92,7 @@ func DeleteComment(commentId int64) (err error) {
 		}
 
 		// 删除评论
-		err = dao.DB.Model(&domain.Comment{}).Delete(&comment).Error
+		err = tx.Model(&domain.Comment{}).Delete(&comment).Error
 		if err != nil {
 			return err
 		}
