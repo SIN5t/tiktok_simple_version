@@ -31,7 +31,19 @@ func FollowAction(c *gin.Context) {
 	actionTypeInt, _ := strconv.Atoi(actionTypeStr)
 
 	err = service.FollowAction(userIdInt64, toUserIdInt64, actionTypeInt)
-
+	if err != nil {
+		//出错了要提示前端app
+		c.JSON(http.StatusOK, domain.Response{
+			StatusCode: 1,
+			StatusMsg:  err.Error(),
+		})
+		return
+	}
+	//没出错也要显示关注成功
+	c.JSON(http.StatusOK, domain.Response{
+		StatusCode: 0,
+		StatusMsg:  "成功关注！",
+	})
 }
 
 // FollowList 查询用户关注列表
@@ -56,6 +68,11 @@ func FollowList(c *gin.Context) {
 	userList, err := service.FollowList(userIdStr)
 	if err != nil {
 		log.Println(err)
+		c.JSON(http.StatusOK, domain.UserFollowListResponse{
+			Response:       domain.Response{StatusCode: 1, StatusMsg: err.Error()},
+			UserFollowList: nil,
+		})
+		return
 	}
 	c.JSON(http.StatusOK, domain.UserFollowListResponse{
 		Response:       domain.Response{StatusCode: 0, StatusMsg: "成功查询到用户的关注列表"},
@@ -75,6 +92,11 @@ func FollowerList(c *gin.Context) {
 	userList, err := service.FollowerList(userIdStr)
 	if err != nil {
 		log.Println(err)
+		c.JSON(http.StatusOK, domain.UserFollowListResponse{
+			Response:       domain.Response{StatusCode: 1, StatusMsg: err.Error()},
+			UserFollowList: nil,
+		})
+		return
 	}
 	c.JSON(http.StatusOK, domain.UserFollowListResponse{
 		Response:       domain.Response{StatusCode: 0, StatusMsg: "成功查询到用户的粉丝列表"},
