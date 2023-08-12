@@ -1,11 +1,13 @@
 package dao
 
 import (
+	"log"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
+	"github.com/goTouch/TicTok_SimpleVersion/util"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"log"
 )
 
 /**
@@ -23,12 +25,10 @@ const (
 )
 
 func InitDB() {
-
 	//datasource
-	dsn := "root:123456@tcp(localhost:3306)/" +
-		"tiktok?charset=utf8mb4&interpolateParams=true&parseTime=True&loc=Local"
-	var err error
+	dsn := util.GetMySQLDSN()
 
+	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		PrepareStmt: true,
 	})
@@ -44,15 +44,15 @@ func InitDB() {
 		log.Println(err)
 	}
 	RdbToken = redis.NewFailoverClient(&redis.FailoverOptions{
-		MasterName:    "mymaster",
-		SentinelAddrs: []string{":17000", ":17001", ":17002"},
+		MasterName:    util.GetRedisMasterName(),
+		SentinelAddrs: util.GetRedisSentinelAddrs(),
 		DB:            numTokenDB,
 	})
 	// 创建 Redis 客户端配置
 	redisConfig := &redis.Options{
-		Addr:     "192.168.157.128:6379", // Redis 服务器地址和端口
-		Password: "123456",               // Redis 认证密码，如果没有密码则为空字符串
-		DB:       0,                      // 选择使用的数据库，默认为 0
+		Addr:     util.GetRedisAddr(), // Redis 服务器地址和端口
+		Password: util.GetRedisPswd(), // Redis 认证密码，如果没有密码则为空字符串
+		DB:       0,                   // 选择使用的数据库，默认为 0
 	}
 
 	// 初始化 Redis 客户端

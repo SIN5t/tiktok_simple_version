@@ -21,3 +21,8 @@
 go.work
 
 .idea
+
+# Scripts used to initialize environment variables
+env.sh
+env.bat
+ 

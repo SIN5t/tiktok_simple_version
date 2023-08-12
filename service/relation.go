@@ -3,14 +3,15 @@ package service
 import (
 	"context"
 	"errors"
+	"strconv"
+
 	"github.com/goTouch/TicTok_SimpleVersion/dao"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
 	"github.com/goTouch/TicTok_SimpleVersion/util"
-	"strconv"
 )
 
 // Action 进行关注和取消关注，关键维护两个hash：当前用户的关注列表，当前用户的粉丝列表
-func Action(userIdInt64 int64, toUserIdInt64 int64, actionType int) (err error) {
+func FollowAction(userIdInt64 int64, toUserIdInt64 int64, actionType int) (err error) {
 
 	userIdStr := strconv.FormatInt(userIdInt64, 10)
 	toUserIdStr := strconv.FormatInt(toUserIdInt64, 10)
@@ -77,9 +78,49 @@ func Action(userIdInt64 int64, toUserIdInt64 int64, actionType int) (err error) 
 	return nil
 }
 func getUserInfoName(userIdInt64 int64) (res string, err error) {
-	err = dao.DB.Model(&domain.User{Id: userIdInt64}).Where("id=?", userIdInt64).Find(&res).Error
+	user, err := User(userIdInt64)
 	if err != nil {
 		return "", err
 	}
-	return res, nil
+	return user.Name, nil
+}
+
+// FollowList 返回当前用户关注的人。user中只分装name与id
+func FollowList(userIdStr string) (userList []domain.User, err error) {
+
+	//查询用户关注的Hash表. 注意HGetAll返回的是map[string]string类型
+	userStringMap, err := dao.RedisClient.
+		HGetAll(context.Background(), util.UserFollowHashPrefix+userIdStr).
+		Result()
+	if err != nil || userStringMap == nil {
+		return nil, errors.New("redis searching for userFollowList error")
+	}
+	//遍历
+	for userIdStr, username := range userStringMap {
+		//一般不会解析错误,忽略错误
+		userIdInt64, _ := strconv.ParseInt(userIdStr, 10, 64)
+		user := domain.User{
+			Id:   userIdInt64,
+			Name: username,
+		}
+		userList = append(userList, user)
+	}
+
+	return userList, nil
+}
+func FollowerList(userIdStr string) (userList []domain.User, err error) {
+	userMap := dao.RedisClient.HGetAll(context.Background(), util.UserFollowersHashPrefix+userIdStr).Val()
+
+	for userId, userName := range userMap {
+		if err != nil || userMap == nil {
+			return nil, errors.New("redis searching for userFollowList error")
+		}
+		userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
+		user := domain.User{
+			Id:   userIdInt64,
+			Name: userName,
+		}
+		userList = append(userList, user)
+	}
+	return userList, nil
 }

@@ -1,14 +1,17 @@
 package service
 
 import (
+	"log"
+
 	"github.com/goTouch/TicTok_SimpleVersion/dao"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
 	"github.com/goTouch/TicTok_SimpleVersion/util"
-	"log"
 )
 
-/**
+/*
+*
 该文件用于：
+
 	向数据库中插入记录条数
 	倒叙返回指定id的作者的所有作品，用于个人界面展示
 */

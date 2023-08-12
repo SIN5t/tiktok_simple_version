@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"errors"
+	"log"
+	"strconv"
+
 	"github.com/goTouch/TicTok_SimpleVersion/dao"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
 	"github.com/goTouch/TicTok_SimpleVersion/util"
 	"gorm.io/gorm"
-	"log"
-	"strconv"
 )
 
 // Favorite
@@ -36,7 +37,7 @@ func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err erro
 				SAdd(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), videoIdInt64)
 		}
 
-		//2.total_favorite(当前用户获赞数量）++  使用redis做。 TODO 隔一段时间做定时任务保存到数据库中
+		//2.total_favorite(当前用户获赞数量）++  使用redis做，TODO 数据库中可以不存这个字段
 		//Incr 方法用于递增 Redis 中的整数值键。如果键不存在，它会将键的值初始化为 0，然后再执行增加操作
 		dao.RedisClient.Incr(context.Background(), util.AuthorBeLikedNum+strconv.FormatInt(userIdInt64, 10))
 
