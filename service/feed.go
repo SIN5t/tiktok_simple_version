@@ -12,6 +12,7 @@ import (
 )
 
 func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.Video, nextTimeInt64 int64) {
+
 	//将int64格式时间戳转为Time.time类型，以保证和数据库类型一致
 	timeStamp := time.UnixMilli(latestTimeInt64)
 	dao.DB.Model(&domain.Video{}).Preload("Author").
@@ -24,9 +25,10 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 		log.Println("FeedService查询数据库查到0条记录")
 		return
 	}
-
+	//测试redis
+	/*ping := dao.RedisClient.Ping(context.Background())
+	log.Println("redis连接情况:%s", ping)*/
 	// 返回这次视频最近的投稿时间-1，下次即可获取比这次视频旧的视频
-	// videoList[len(videoList)-1]，因为排序过，这个就是最早的时间，将nextTime更新为当前最早视频时间减一，下个视频就从nextTime开始
 	nextTimeInt64 = videoList[len(videoList)-1].CreatTime.UnixMilli() - 1
 
 	for i := 0; i < len(videoList); i++ {
@@ -35,8 +37,6 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 		//查出每个视频对于当前用户的喜欢状态，已经视频作者的关注状态
 		//注意前提是登入才能处理
 		if userIdInt64 != 0 { //已登入
-			//redis Set类型, key主要是当前访问用户的id，val是当前访问用户点赞的各个视频id
-			// TODO 关注一下Hset保存以上信息的地方，下面是直接取出了
 			isFavorite := dao.RedisClient.
 				SIsMember(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), video.Id).
 				Val()

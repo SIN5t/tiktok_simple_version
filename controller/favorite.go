@@ -10,10 +10,8 @@ import (
 	"github.com/goTouch/TicTok_SimpleVersion/service"
 )
 
-// FavoriteAction no practical effect, just check if token is valid
-// 前端接口文档中，前端有带有token，videoId，actionType(1表示点赞，2表示取消点赞)三个参数，利用好
+// FavoriteAction
 func FavoriteAction(c *gin.Context) {
-	//实现点赞三个数据是必要的，点赞用户的id（从token中，或者gin context拿？），点赞视频的id，是否点赞
 
 	//验证token，合法的话返回userId
 	userIdInt64 := c.GetInt64("userId")
@@ -25,7 +23,7 @@ func FavoriteAction(c *gin.Context) {
 		return
 	}
 
-	//actionType, err := strconv.ParseInt(c.Query("action_type"), 10, 32) //这个函数返回的就是64位的！
+	//actionType, err := strconv.ParseInt(c.Query("action_type"), 10, 32) //这个函数返回的就是64位的
 	actionType, err := strconv.Atoi(c.Query("action_type"))
 
 	if err != nil {

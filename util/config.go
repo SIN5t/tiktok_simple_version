@@ -37,7 +37,8 @@ var (
 	mysql_addr = projectEnv("mysql_addr", "localhost:3306")
 	mysql_name = projectEnv("mysql_name", "tiktok")
 
-	redis_addr           = projectEnv("redis_addr", "localhost:6379")
+	redis_addr           = projectEnv("redis_addr", "localhost:6379", "192.168.157.128:6379")
+	redis_addr_linux     = projectEnv("redis_addr", "192.168.157.128:6379")
 	redis_pswd           = projectEnv("redis_pswd", "123456")
 	redis_master_name    = projectEnv("redis_master_name", "mymaster")
 	redis_sentinel_addrs = strings.Split(projectEnv("redi_sentinel_addrs", ":17000 :17001 :17002 "), "")
@@ -52,7 +53,8 @@ func GetMySQLDSN() string {
 }
 
 func GetRedisAddr() string {
-	return redis_addr
+	//return redis_addr
+	return redis_addr_linux
 }
 
 func GetRedisPswd() string {

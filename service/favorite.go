@@ -136,7 +136,7 @@ func FavoriteList(userIdInt64 int64) (videoList []domain.Video, err error) {
 		result := dao.DB.Model(&domain.Video{}).
 			Where("id = ?", videoIdInt64).
 			Find(&video)
-		if result != nil {
+		if result == nil {
 			return nil, result.Error
 		}
 		videoList = append(videoList, video)
