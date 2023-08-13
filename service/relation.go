@@ -10,7 +10,7 @@ import (
 	"github.com/goTouch/TicTok_SimpleVersion/util"
 )
 
-// Action 进行关注和取消关注，关键维护两个hash：当前用户的关注列表，当前用户的粉丝列表
+// FollowAction Action 进行关注和取消关注，关键维护两个hash：当前用户的关注列表，当前用户的粉丝列表
 func FollowAction(userIdInt64 int64, toUserIdInt64 int64, actionType int) (err error) {
 
 	userIdStr := strconv.FormatInt(userIdInt64, 10)
@@ -58,8 +58,8 @@ func FollowAction(userIdInt64 int64, toUserIdInt64 int64, actionType int) (err e
 		//当前用户关注列表减少
 		unFollowRes := dao.RedisClient.HDel(
 			context.Background(),
-			util.UserHashKeyPrefix+strconv.FormatInt(userIdInt64, 10),
-			strconv.FormatInt(userIdInt64, 10),
+			util.UserFollowHashPrefix+userIdStr,
+			toUserIdStr,
 		).Val()
 		if unFollowRes == 0 {
 			//说明本来就没关注
@@ -100,9 +100,9 @@ func FollowList(userIdStr string) (userList []domain.User, err error) {
 		//一般不会解析错误,忽略错误
 		userIdInt64, _ := strconv.ParseInt(userIdStr, 10, 64)
 		user := domain.User{
+			IsFollow:      true, //既然是当前用户下的关注列表，状态肯定要设置为关注
 			Id:            userIdInt64,
 			Name:          username,
-			IsFollow:      true,
 			FollowCount:   dao.RedisClient.HLen(context.Background(), util.UserFollowHashPrefix+userIdStr).Val(),
 			FollowerCount: dao.RedisClient.HLen(context.Background(), util.UserFollowHashPrefix+userIdStr).Val(),
 		}
@@ -117,11 +117,14 @@ func FollowerList(userIdStr string) (userList []domain.User, err error) {
 		if err != nil || userMap == nil {
 			return nil, errors.New("redis searching for userFollowList error")
 		}
+
+		//查该用户是否关注了当前粉丝。这个结果需要返回前端显示：IsFollow
+		isFollowed := dao.RedisClient.HExists(context.Background(), util.UserFollowHashPrefix+userIdStr, userId).Val()
 		userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
 		user := domain.User{
+			IsFollow:      isFollowed, //当前user的关注列表中有粉丝的id，说明互相关注。
 			Id:            userIdInt64,
 			Name:          userName,
-			IsFollow:      true,
 			FollowCount:   dao.RedisClient.HLen(context.Background(), util.UserFollowersHashPrefix+userIdStr).Val(),
 			FollowerCount: dao.RedisClient.HLen(context.Background(), util.UserFollowersHashPrefix+userIdStr).Val(),
 		}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
 	"strconv"
 	"time"
@@ -11,8 +12,9 @@ import (
 	"github.com/goTouch/TicTok_SimpleVersion/util"
 )
 
-func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.Video, nextTimeInt64 int64) {
+func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.Video, nextTimeInt64 int64, err error) {
 
+	userIdStr := strconv.FormatInt(userIdInt64, 10)
 	//将int64格式时间戳转为Time.time类型，以保证和数据库类型一致
 	timeStamp := time.UnixMilli(latestTimeInt64)
 	dao.DB.Model(&domain.Video{}).Preload("Author").
@@ -23,11 +25,10 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 
 	if len(videoList) == 0 {
 		log.Println("FeedService查询数据库查到0条记录")
+		err = errors.New("获取视频失败")
 		return
 	}
-	//测试redis
-	/*ping := dao.RedisClient.Ping(context.Background())
-	log.Println("redis连接情况:%s", ping)*/
+
 	// 返回这次视频最近的投稿时间-1，下次即可获取比这次视频旧的视频
 	nextTimeInt64 = videoList[len(videoList)-1].CreatTime.UnixMilli() - 1
 	url := dao.MinioClient.EndpointURL().String() + "/" + util.VidioBucketName + "/"
@@ -46,7 +47,7 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 		//注意前提是登入才能处理
 		if userIdInt64 != 0 { //已登入
 			isFavorite := dao.RedisClient.
-				SIsMember(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), video.Id).
+				SIsMember(context.Background(), util.VideoFavoriteKeyPrefix+userIdStr, video.Id).
 				Val()
 
 			if isFavorite {
@@ -54,18 +55,16 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 				video.IsFavorite = true
 			}
 
-			//类似的，上面是点赞，这里是关注
-			//key主要是当前用户的id，Hset的val是多个值：当前用户关注的作者的id
+			//关注
 			isFollowed := dao.RedisClient.
-				SIsMember(context.Background(), util.AuthorFollowedKeyPrefix+strconv.FormatInt(userIdInt64, 10), video.AuthorId).
+				HExists(context.Background(), util.UserFollowHashPrefix+userIdStr, strconv.FormatInt(video.AuthorId, 10)).
 				Val()
 
 			if isFollowed {
-				//如果是关注的
+				//如果当前作者是关注的作者
 				video.Author.IsFollow = true
 			}
 		}
-		//未登入。默认显示没点赞、没关注。也就是直接数据库查询出来的结果：false
 
 	}
 	return
