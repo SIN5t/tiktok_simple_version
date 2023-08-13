@@ -21,20 +21,18 @@ func Feed(c *gin.Context) {
 		return
 	}
 
-	videoList, nextTimeInt64 := service.FeedService(userId, latestTimeInt64)
-	if len(videoList) != 0 { //说明查到了视频
-		c.JSON(http.StatusOK, domain.FeedResponse{
-			Response:  domain.Response{StatusCode: 0, StatusMsg: "成功查询视频并返回"},
-			VideoList: videoList,
-			NextTime:  nextTimeInt64,
+	videoList, nextTimeInt64, err := service.FeedService(userId, latestTimeInt64)
+	if err != nil {
+		c.JSON(http.StatusOK, domain.Response{
+			StatusCode: 1, StatusMsg: err.Error(),
 		})
-	} else {
-		//注意feedResponse和response不一样，继承关系
-		c.JSON(http.StatusOK,
-			domain.Response{
-				StatusCode: 1,
-				StatusMsg:  "请求成功，但是查到0条视频！",
-			},
-		)
+		return
 	}
+	//说明查到了视频
+	c.JSON(http.StatusOK, domain.FeedResponse{
+		Response:  domain.Response{StatusCode: 0, StatusMsg: "刷新成功"},
+		VideoList: videoList,
+		NextTime:  nextTimeInt64,
+	})
+
 }
