@@ -2,10 +2,12 @@ package controller
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/goTouch/TicTok_SimpleVersion/dao"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
+	"github.com/goTouch/TicTok_SimpleVersion/service"
 	"github.com/goTouch/TicTok_SimpleVersion/util"
 	"github.com/minio/minio-go/v7"
 	"io/ioutil"
@@ -19,12 +21,13 @@ import (
 // 既然是发布视频，首先需要校验token，登入的问题
 // Publish 获取用户投稿的视频并保存到本地
 func Publish(c *gin.Context) {
-	//id := c.GetInt64("userId")
+	id := c.GetInt64("userId")
+	title := c.PostForm("title")
 	//if err != nil {
 	//	log.Println(err)
 	//	log.Println("Publish接口：当前用户token核验失败")
 	//}
-	id := "1"
+	//id := "1"
 	// 获取用户上传的视频
 	data, err := c.FormFile("data")
 	if err != nil {
@@ -58,17 +61,13 @@ func Publish(c *gin.Context) {
 		})
 		return
 	}
-	cclient := dao.MinioClient
-
-	log.Println(cclient.EndpointURL())
-	log.Println(dao.MinioClient.EndpointURL())
 	_, err = dao.MinioClient.PutObject(
-		c,
-		util.VidioBucketName,
-		filename,
-		bytes.NewBuffer(miniodata),
-		int64(len(miniodata)),
-		minio.PutObjectOptions{UserMetadata: map[string]string{"x-amz-acl": "public-read"}},
+		c,                          // 上下文。
+		util.VidioBucketName,       // 存储桶名称。
+		filename,                   // 存储对象名称。
+		bytes.NewBuffer(miniodata), // 读取对象的内容。
+		int64(len(miniodata)),      // 对象的大小。
+		minio.PutObjectOptions{UserMetadata: map[string]string{"x-amz-acl": "public-read"}}, // minio.PutObjectOptions，用户可以通过这个参数设置对象的元数据。
 	)
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{
@@ -78,14 +77,40 @@ func Publish(c *gin.Context) {
 		return
 	}
 	reqParams := make(url.Values)
-	presignedURL, err := dao.MinioClient.PresignedGetObject(c, util.VidioBucketName, filename, time.Duration(1000)*time.Second, reqParams)
+	presignedURL, err := dao.MinioClient.PresignedGetObject(
+		c,                               // 上下文。
+		util.VidioBucketName,            // 存储桶名称。
+		filename,                        // 存储对象名称。
+		time.Duration(1000)*time.Second, // 过期时间，有效期为1小时。
+		reqParams,                       // minio.RequestHeaders，用户可以通过这个参数设置请求头。
+	)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	log.Println(presignedURL)
+	coverGenerateStatus := false
+	jpeg, err := util.ReadFrameAsJpeg(presignedURL.String(), 1)
+
+	if err == nil {
+		buf := &bytes.Buffer{}
+		buf.ReadFrom(jpeg)
+		putSnapshotToOss(buf, util.PictureBucketName, filename+".jpg")
+		coverGenerateStatus = true
+	} else {
+		log.Println(err)
+		coverGenerateStatus = false
+	}
+	err = service.InsertVideos(filename, title, filename+".jpg", id, coverGenerateStatus)
+	if err != nil {
+		c.JSON(http.StatusOK, domain.Response{
+			StatusCode: 1,
+			StatusMsg:  err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, domain.Response{
 		StatusCode: 0,
-		StatusMsg:  presignedURL.String(),
+		StatusMsg:  "上传成功",
 	})
 	return
 	// 保存视频文件到本地
@@ -117,4 +142,19 @@ func Publish(c *gin.Context) {
 	//})
 }
 
-// 既然是发布视频，首先需要校验token，登入的问题
+func putSnapshotToOss(buf *bytes.Buffer, bucketName string, saveName string) {
+	_, err := dao.MinioClient.PutObject(context.Background(),
+		bucketName,
+		saveName,
+		buf,
+		int64(buf.Len()),
+		minio.PutObjectOptions{
+			ContentType: "image/jpeg",
+		})
+
+	if err != nil {
+		log.Fatalln("图片上传失败", err)
+		return
+	}
+	log.Printf("图片上传成功")
+}

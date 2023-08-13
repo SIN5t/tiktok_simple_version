@@ -118,7 +118,8 @@ func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err erro
 }
 
 func FavoriteList(userIdInt64 int64) (videoList []domain.Video, err error) {
-
+	url := dao.MinioClient.EndpointURL().String() + "/" + util.VidioBucketName + "/"
+	picurl := dao.MinioClient.EndpointURL().String() + "/" + util.PictureBucketName + "/"
 	userFavoriteVideosIdStrArr, err := dao.RedisClient.
 		SMembers(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10)).
 		Result()
@@ -140,6 +141,14 @@ func FavoriteList(userIdInt64 int64) (videoList []domain.Video, err error) {
 			return nil, result.Error
 		}
 		videoList = append(videoList, video)
+	}
+	for i := range videoList {
+		if videoList[i].CoverUrl == "" {
+			videoList[i].CoverUrl = "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg"
+		} else {
+			videoList[i].CoverUrl = picurl + videoList[i].CoverUrl
+		}
+		videoList[i].PlayUrl = url + videoList[i].PlayUrl
 	}
 	return videoList, nil
 }
