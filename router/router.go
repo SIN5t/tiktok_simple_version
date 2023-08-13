@@ -23,9 +23,9 @@ func InitRouter(r *gin.Engine) {
 	userR.GET("/", middleware.AuthJWT, controller.User)
 
 	// publish
-	pubR := apiR.Group("/publish").Use(middleware.AuthJWT)
-	pubR.POST("/action") // TODO
-	pubR.GET("/list")    // TODO
+	pubR := apiR.Group("/publish")
+	pubR.POST("/action/", controller.Publish).Use(middleware.AuthJWTOptional) // TODO
+	pubR.GET("/list")                                                         // TODO
 
 	// favorite
 	favR := apiR.Group("/favorite").Use(middleware.AuthJWT)
