@@ -30,10 +30,17 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 	log.Println("redis连接情况:%s", ping)*/
 	// 返回这次视频最近的投稿时间-1，下次即可获取比这次视频旧的视频
 	nextTimeInt64 = videoList[len(videoList)-1].CreatTime.UnixMilli() - 1
-
+	url := dao.MinioClient.EndpointURL().String() + "/" + util.VidioBucketName + "/"
 	for i := 0; i < len(videoList); i++ {
 		// TODO 丰富Video的额外字段，例如author
 		video := &videoList[i]
+		if videoList[i].CoverUrl == "" {
+			videoList[i].CoverUrl = "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg"
+		} else {
+			videoList[i].CoverUrl = url + videoList[i].CoverUrl
+		}
+
+		videoList[i].PlayUrl = url + videoList[i].PlayUrl
 		//查出每个视频对于当前用户的喜欢状态，已经视频作者的关注状态
 		//注意前提是登入才能处理
 		if userIdInt64 != 0 { //已登入

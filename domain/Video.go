@@ -11,7 +11,7 @@ type Video struct {
 	Title         string    `json:"title" gorm:"type:varchar(100)"`
 	PlayUrl       string    `json:"play_url" gorm:"type:varchar(100)"`
 	CoverUrl      string    `json:"cover_url" gorm:"type:varchar(100)"`
-	CreatTime     time.Time `json:"-" gorm:"index:,sort:desc"` //该字段加了索引
+	CreatTime     time.Time `json:"-" gorm:"type:datetime(0);autoCreateTime;index:;sort:desc"` //该字段加了索引
 
 	Author User `json:"author"`
 }
