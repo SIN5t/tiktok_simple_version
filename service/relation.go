@@ -25,13 +25,11 @@ func FollowAction(userIdInt64 int64, toUserIdInt64 int64, actionType int) (err e
 
 	//2.关注
 	if actionType == 1 {
-		/*//2.1 先判断是否已经关注  问题：什么时候创建Hash表结构？---不存在自动创建！
-		followedStatus := dao.RedisClient.
-			HExists(
-			....
-		HSetNX解决以上所有问题：当哈希表的键key不存在时，会自动创建。当字段field不存在时才会插入，字段存在返回false
-		*/
-
+		//关注对象不可以用户自己
+		if userIdStr == toUserIdStr {
+			err = errors.New("请勿关注自己")
+			return
+		}
 		//关注列表加字段
 		followRes := dao.RedisClient.HSetNX(
 			context.Background(),

@@ -1,7 +1,10 @@
 package dao
 
 import (
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm/logger"
 	"log"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
@@ -28,14 +31,28 @@ func InitDB() {
 	//datasource
 	dsn := util.GetMySQLDSN()
 
+	//配置日志
+	var ormLogger logger.Interface
+	if gin.Mode() == "debug" {
+		ormLogger = logger.Default.LogMode(logger.Info)
+	} else {
+		ormLogger = logger.Default
+	}
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger:      ormLogger, //日志配置
 		PrepareStmt: true,
 	})
 	if err != nil {
 		log.Println("InitDB中数据库初始化失败！")
 		panic(err)
 	}
+
+	//设置数据库参数
+	sqlDB, _ := DB.DB()
+	sqlDB.SetMaxIdleConns(20)  //空闲时连接池
+	sqlDB.SetMaxOpenConns(100) //最大打开数
+	sqlDB.SetConnMaxLifetime(30 * time.Second)
 
 	//创建数据库表格或更新已存在的表格
 	err = DB.AutoMigrate(&domain.User{}, &domain.Video{}, &domain.Comment{})
