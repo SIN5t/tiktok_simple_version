@@ -11,7 +11,6 @@ import (
 // InsertVideos 向数据库插入视频信息
 func InsertVideos(videoName string, title string, coverName string, userId int64, coverGenerateStatus bool) error {
 	video := domain.Video{
-		Id:       0,
 		AuthorId: userId,
 		Title:    title,
 		PlayUrl:  videoName,

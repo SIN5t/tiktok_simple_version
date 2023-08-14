@@ -12,7 +12,10 @@ import (
 
 // 强制鉴权，成功后会把userId写入context中，失败会直接终止请求
 func AuthJWT(c *gin.Context) {
-	tokenString := c.Query("token")
+	tokenString := c.PostForm("token")
+	if tokenString == "" {
+		tokenString = c.Query("token")
+	}
 	userId, err := service.VerifyJWT(tokenString, util.JWTSecret())
 	fmt.Println("userId", userId)
 	if err != nil {
@@ -25,7 +28,10 @@ func AuthJWT(c *gin.Context) {
 
 // 非强制鉴权，成功会将userId写入context中，失败会写入0
 func AuthJWTOptional(c *gin.Context) {
-	tokenString := c.Query("token")
+	tokenString := c.PostForm("token")
+	if tokenString == "" {
+		tokenString = c.Query("token")
+	}
 	userId, err := service.VerifyJWT(tokenString, util.JWTSecret())
 	fmt.Println("userId", userId)
 	if err != nil {
