@@ -78,7 +78,8 @@ func Login(username, password string) (id int64, token string, err error) {
 	user := domain.User{}
 	dao.DB.Model(&domain.User{}).Where("name = ?", username).Find(&user)
 	if user.Id == 0 {
-		return 0, "", errors.New("用户不存在！")
+		err = errors.New("用户不存在！")
+		return
 	}
 
 	// 核对密码
@@ -87,18 +88,22 @@ func Login(username, password string) (id int64, token string, err error) {
 	buf.WriteString(password)
 	buf.WriteString(user.Salt)
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Pwd), buf.Bytes()); err != nil {
-		fmt.Println("密码错误", err)
-		return 0, "", errors.New("密码错误")
+		err = errors.New("密码错误")
+		return
 	}
 
 	// 生成jwt
 	tokenString, err := GenerateJWT(user.Id, util.JWTSecret())
 	if err != nil {
-		return 0, "", errors.New("生成jwt错误")
+		err = errors.New("生成jwt错误")
+		return
 	}
 
 	// 缓存jwt
-	dao.RedisClient.Set(context.Background(), tokenString, user.Id, 0)
+	err = dao.RedisClient.Set(context.Background(), tokenString, user.Id, time.Hour*24).Err()
+	if err != nil {
+		return
+	}
 
 	return user.Id, tokenString, nil
 }
@@ -153,6 +158,10 @@ func VerifyJWT(tokenString, secret string) (userId int64, err error) {
 		return sub, nil
 	}
 	return 0, errors.New("验证失败：无法获取声明")
+}
+
+func RefreshJWT(tokenString string) (err error) {
+	return dao.RedisClient.Expire(context.Background(), tokenString, time.Hour*24).Err()
 }
 
 // 随机盐长度固定为4
