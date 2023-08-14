@@ -43,7 +43,7 @@ func Publish(c *gin.Context) {
 	// 通过用户id和当前时间戳拼接成最终存放的视频文件名
 	filename := fmt.Sprintf("%x_%x%s", id, time.Now().Unix(), fileSuffix)
 	// 拼接存放视频的本地路径
-	//saveFile := filepath.Join("./static-server/videos/", filename)
+	//saveFile := filepath.Join("./static-server/video/", filename)
 	file, err := data.Open()
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{
@@ -67,7 +67,7 @@ func Publish(c *gin.Context) {
 		filename,                   // 存储对象名称。
 		bytes.NewBuffer(miniodata), // 读取对象的内容。
 		int64(len(miniodata)),      // 对象的大小。
-		minio.PutObjectOptions{UserMetadata: map[string]string{"x-amz-acl": "public-read"}}, // minio.PutObjectOptions，用户可以通过这个参数设置对象的元数据。
+		minio.PutObjectOptions{UserMetadata: map[string]string{"x-amz-acl": "miniodata-read"}}, // minio.PutObjectOptions，用户可以通过这个参数设置对象的元数据。
 	)
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{

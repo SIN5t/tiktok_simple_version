@@ -2,15 +2,14 @@ package dao
 
 import (
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm/logger"
-	"log"
-	"time"
-
 	"github.com/go-redis/redis/v8"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
 	"github.com/goTouch/TicTok_SimpleVersion/util"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"log"
+	"time"
 )
 
 /**

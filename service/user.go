@@ -116,6 +116,10 @@ func User(userId int64) (user domain.User, err error) {
 	if err != nil {
 		return domain.User{}, errors.New("用户不存在")
 	}
+	userFollowNum := dao.RedisClient.HLen(context.Background(), util.UserFollowHashPrefix+string(userId)).Val()
+	userFollowerNum := dao.RedisClient.HLen(context.Background(), util.UserFollowersHashPrefix+string(userId)).Val()
+	user.FollowCount = userFollowNum
+	user.FollowerCount = userFollowerNum
 	return user, nil
 }
 

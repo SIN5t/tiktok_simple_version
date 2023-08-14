@@ -9,7 +9,7 @@ import (
 	"github.com/goTouch/TicTok_SimpleVersion/service"
 )
 
-// Feed same demo videos list for every request
+// Feed same demo video list for every request
 func Feed(c *gin.Context) {
 	userId := c.GetInt64("userId")
 	//根据接口文档，前端传来的request中有token和latest_time， 这里一个用于存当前用户id，一个存下次视频时间戳

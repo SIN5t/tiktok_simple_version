@@ -7,8 +7,8 @@ import (
 )
 
 func InitRouter(r *gin.Engine) {
-	// public directory is used to serve static resources
-	r.Static("/static", "./public")
+	// miniodata directory is used to serve static resources
+	r.Static("/static", "./miniodata")
 
 	apiR := r.Group("/douyin")
 
@@ -25,7 +25,7 @@ func InitRouter(r *gin.Engine) {
 	// publish
 	pubR := apiR.Group("/publish").Use(middleware.AuthJWTForce)
 	pubR.POST("/action/", controller.Publish)
-	pubR.GET("/list") // TODO
+	pubR.GET("/list")
 
 	// favorite
 	favR := apiR.Group("/favorite").Use(middleware.AuthJWTForce)
@@ -42,7 +42,7 @@ func InitRouter(r *gin.Engine) {
 	rltR.POST("/action/", controller.FollowAction)
 	rltR.GET("/follow/list/", controller.FollowList)
 	rltR.GET("/follower/list/", controller.FollowerList)
-	rltR.GET("/friend/list/") // TODO
+	rltR.GET("/friend/list/", controller.FriendList)
 
 	// message
 	msgR := apiR.Group("/message").Use(middleware.AuthJWTForce)

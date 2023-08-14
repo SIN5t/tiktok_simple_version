@@ -103,3 +103,20 @@ func FollowerList(c *gin.Context) {
 		UserFollowList: userList,
 	})
 }
+
+// FriendList 用户好友列表
+func FriendList(c *gin.Context) {
+	userIdStr := c.Query("user_id")
+	friendListList, err := service.FollowList(userIdStr)
+	if err != nil {
+		c.JSON(http.StatusOK, domain.Response{
+			StatusCode: 1,
+			StatusMsg:  err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, domain.UserFollowListResponse{
+		Response:       domain.Response{StatusCode: 0, StatusMsg: "成功刷新好友列表"},
+		UserFollowList: friendListList,
+	})
+}
