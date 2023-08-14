@@ -24,4 +24,9 @@ go.work
 
 # Config file
 config.toml
- 
+
+# Redis
+dump.rdb
+
+# MinIO
+miniodata/
