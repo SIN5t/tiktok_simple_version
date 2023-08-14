@@ -98,7 +98,7 @@ func Login(username, password string) (id int64, token string, err error) {
 	}
 
 	// 缓存jwt
-	dao.RedisClient.Set(context.Background(), tokenString, user.Id, time.Hour*24)
+	dao.RedisClient.Set(context.Background(), tokenString, user.Id, 0)
 
 	return user.Id, tokenString, nil
 }
@@ -153,10 +153,6 @@ func VerifyJWT(tokenString, secret string) (userId int64, err error) {
 		return sub, nil
 	}
 	return 0, errors.New("验证失败：无法获取声明")
-}
-
-func RefreshJWT(tokenString string) (err error) {
-	return dao.RedisClient.Expire(context.Background(), tokenString, time.Hour*24).Err()
 }
 
 // 随机盐长度固定为4
