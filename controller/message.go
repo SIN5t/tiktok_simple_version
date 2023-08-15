@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	dao "github.com/goTouch/TicTok_SimpleVersion/dao"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
@@ -29,17 +28,20 @@ func Chat(c *gin.Context) {
 	//
 	//log.Println(msgTime < time.Now().UnixMilli())
 	queryTime := time.Now().UnixMilli()
-
+	time, _ := dao.RedisClient.Get(c, util.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10)).Result()
 	if msgTime > queryTime {
-		time, _ := dao.RedisClient.Get(c, util.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10)).Result()
+
 		msgTime, _ = strconv.ParseInt(time, 10, 64)
 	}
 
 	list, err := service.ChatList(fromUserId, toUserId, msgTime)
+
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "获取聊天记录失败"})
 		return
 	}
+	dao.RedisClient.Set(c, util.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10), strconv.FormatInt(queryTime, 10), 0)
+
 	c.JSON(http.StatusOK, domain.ChatResponse{
 		Response:    domain.Response{StatusCode: 0},
 		MessageList: list,
@@ -47,7 +49,7 @@ func Chat(c *gin.Context) {
 	return
 }
 func ChatAction(c *gin.Context) {
-	fmt.Println(time.Now().Format(time.RFC3339))
+
 	fromUserId := c.GetInt64("userId")
 	toUserId, err1 := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
 	content := c.Query("content")
@@ -67,8 +69,10 @@ func ChatAction(c *gin.Context) {
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: message + err.Error()})
 		return
 	}
-	queryTime := time.Now().UnixMilli()
-	dao.RedisClient.Set(c, util.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10), strconv.FormatInt(queryTime, 10), 0)
+	//fmt.Println(time.Now().Format(time.RFC3339))
+	//queryTime := time.Now().UnixMilli()
+	//log.Println(queryTime)
+	//dao.RedisClient.Set(c, util.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10), strconv.FormatInt(queryTime, 10), 0)
 
 	c.JSON(http.StatusOK, domain.Response{StatusCode: 0, StatusMsg: message})
 	return
