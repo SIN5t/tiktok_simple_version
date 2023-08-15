@@ -54,7 +54,7 @@ func InitDB() {
 	sqlDB.SetConnMaxLifetime(30 * time.Second)
 
 	//创建数据库表格或更新已存在的表格
-	err = DB.AutoMigrate(&domain.User{}, &domain.Video{}, &domain.Comment{})
+	err = DB.AutoMigrate(&domain.User{}, &domain.Video{}, &domain.Comment{}, &domain.Message{})
 	if err != nil {
 		//return
 		log.Println(err)
