@@ -15,6 +15,8 @@ const (
 
 	VideoFavoriteKeyPrefix = "VIDEO_FAVORITE_KEY:" // 用户点赞视频
 
+	UserMessageTimePrefix = "USER_MESSAGE_KEY:"
+
 	VidioBucketName   = "video"
 	PictureBucketName = "picture"
 )

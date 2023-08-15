@@ -31,7 +31,7 @@ func AddMessage(fromUserId int64, toUserId int64, content string) (info string, 
 	return "向message数据库中插入成功", nil
 
 }
-func ChatList(fromUserId int64, toUserId int64) (messageList []domain.Message, err error) {
+func ChatList(fromUserId int64, toUserId int64, msgTime int64) (messageList []domain.Message, err error) {
 	// 判断用户是否存在
 	_, err = User(fromUserId)
 	if err != nil {
@@ -42,11 +42,12 @@ func ChatList(fromUserId int64, toUserId int64) (messageList []domain.Message, e
 		return messageList, err
 	}
 	//查询数据库
-	if err := dao.DB.Where("from_user_id = ?", fromUserId).Or("to_user_id = ?", fromUserId).Find(&messageList).Error; err != nil {
+	if err := dao.DB.Where("create_time > ? AND ((`from_user_id` = ? AND `to_user_id` = ?)  OR (`from_user_id` = ? AND `to_user_id` = ?))", msgTime, fromUserId, toUserId, toUserId, fromUserId).Find(&messageList).Error; err != nil {
 		log.Print("从message数据库中查询数据失败！")
 		log.Println(err)
 		return messageList, err
 	}
 	//没出错
+
 	return messageList, nil
 }
