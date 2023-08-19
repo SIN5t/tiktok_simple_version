@@ -25,7 +25,7 @@ func InitRouter(r *gin.Engine) {
 	// publish
 	pubR := apiR.Group("/publish").Use(middleware.AuthJWTForce)
 	pubR.POST("/action/", controller.Publish)
-	pubR.GET("/list")
+	pubR.GET("/list", controller.PublishList)
 
 	// favorite
 	favR := apiR.Group("/favorite").Use(middleware.AuthJWTForce)

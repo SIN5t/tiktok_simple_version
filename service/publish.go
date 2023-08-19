@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"log"
 
 	"github.com/goTouch/TicTok_SimpleVersion/dao"
@@ -32,20 +33,25 @@ func InsertVideos(videoName string, title string, coverName string, userId int64
 }
 
 // QueryAuthorPublishedVideo 查询用户发布的视频，以展示在个人列表中
-func QueryAuthorPublishedVideo(authorIdInt64 int64) (VideoList []domain.Video) {
+func QueryAuthorPublishedVideo(authorIdInt64 int64) (videoList []domain.Video, err error) {
 	url := dao.MinioClient.EndpointURL().String() + "/" + util.VidioBucketName + "/"
-	dao.DB.Model(&domain.Video{}).
+	picurl := dao.MinioClient.EndpointURL().String() + "/" + util.PictureBucketName + "/"
+	err = dao.DB.Model(&domain.Video{}).
 		Where("author_id = ?", authorIdInt64).
 		Order("creat_time desc"). //该字段加了索引
-		Find(&VideoList)
-	for i := range VideoList {
-		if VideoList[i].CoverUrl == "" {
-			VideoList[i].CoverUrl = "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg"
+		Find(&videoList).Error
+	if err != nil {
+		err = errors.New("未查询到视频")
+		return
+	}
+	for i := range videoList {
+		if videoList[i].CoverUrl == "" {
+			videoList[i].CoverUrl = "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg"
 		} else {
-			VideoList[i].CoverUrl = url + VideoList[i].CoverUrl
+			videoList[i].CoverUrl = picurl + videoList[i].CoverUrl
 		}
 
-		VideoList[i].PlayUrl = url + VideoList[i].PlayUrl
+		videoList[i].PlayUrl = url + videoList[i].PlayUrl
 	}
 	return
 }

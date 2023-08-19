@@ -4,18 +4,19 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
+	"path/filepath"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/goTouch/TicTok_SimpleVersion/dao"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
 	"github.com/goTouch/TicTok_SimpleVersion/service"
 	"github.com/goTouch/TicTok_SimpleVersion/util"
 	"github.com/minio/minio-go/v7"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"net/url"
-	"path/filepath"
-	"time"
 )
 
 // 既然是发布视频，首先需要校验token，登入的问题
@@ -53,7 +54,7 @@ func Publish(c *gin.Context) {
 		return
 	}
 	defer file.Close()
-	miniodata, err := ioutil.ReadAll(file)
+	miniodata, err := io.ReadAll(file)
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{
 			StatusCode: 1,
@@ -112,7 +113,6 @@ func Publish(c *gin.Context) {
 		StatusCode: 0,
 		StatusMsg:  "上传成功",
 	})
-	return
 	// 保存视频文件到本地
 	//if err = c.SaveUploadedFile(data, saveFile); err != nil {
 	//	c.JSON(http.StatusOK, domain.Response{
@@ -157,4 +157,17 @@ func putSnapshotToOss(buf *bytes.Buffer, bucketName string, saveName string) {
 		return
 	}
 	log.Printf("图片上传成功")
+}
+
+func PublishList(c *gin.Context) {
+	id := c.GetInt64("userId")
+	list, err := service.QueryAuthorPublishedVideo(id)
+	if err != nil {
+		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, domain.VideoListResponse{
+		Response:  domain.Response{StatusCode: 0},
+		VideoList: list,
+	})
 }

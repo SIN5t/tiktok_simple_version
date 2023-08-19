@@ -1,15 +1,16 @@
 package controller
 
 import (
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	dao "github.com/goTouch/TicTok_SimpleVersion/dao"
 	"github.com/goTouch/TicTok_SimpleVersion/domain"
 	"github.com/goTouch/TicTok_SimpleVersion/service"
 	"github.com/goTouch/TicTok_SimpleVersion/util"
-	"log"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 func Chat(c *gin.Context) {
@@ -46,8 +47,8 @@ func Chat(c *gin.Context) {
 		Response:    domain.Response{StatusCode: 0},
 		MessageList: list,
 	})
-	return
 }
+
 func ChatAction(c *gin.Context) {
 
 	fromUserId := c.GetInt64("userId")
@@ -75,5 +76,4 @@ func ChatAction(c *gin.Context) {
 	//dao.RedisClient.Set(c, util.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10), strconv.FormatInt(queryTime, 10), 0)
 
 	c.JSON(http.StatusOK, domain.Response{StatusCode: 0, StatusMsg: message})
-	return
 }
