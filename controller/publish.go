@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -160,7 +161,12 @@ func putSnapshotToOss(buf *bytes.Buffer, bucketName string, saveName string) {
 }
 
 func PublishList(c *gin.Context) {
-	id := c.GetInt64("userId")
+	idStr := c.Query("user_id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "用户id解析错误"})
+		return
+	}
 	list, err := service.QueryAuthorPublishedVideo(id)
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: err.Error()})
