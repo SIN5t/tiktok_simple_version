@@ -27,7 +27,7 @@ func authJWT(c *gin.Context, force bool) {
 		} // 非强制不处理
 	} else { // 已登录
 		// 刷新token
-		if err = service.RefreshJWT(tokenString); err != nil {
+		if err = service.RefreshJWT(userId); err != nil {
 			c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: err.Error()})
 			c.Abort()
 		}

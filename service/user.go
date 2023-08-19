@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -100,7 +101,7 @@ func Login(username, password string) (id int64, token string, err error) {
 	}
 
 	// 缓存jwt
-	err = dao.RedisClient.Set(context.Background(), tokenString, user.Id, time.Hour*24).Err()
+	err = dao.RedisClient.Set(context.Background(), util.Key(util.TokenRefreshPrefix, strconv.FormatInt(user.Id, 10)), tokenString, time.Hour*24).Err()
 	if err != nil {
 		return
 	}
@@ -116,8 +117,8 @@ func User(userId int64) (user domain.User, err error) {
 	if err != nil {
 		return domain.User{}, errors.New("用户不存在")
 	}
-	userFollowNum := dao.RedisClient.HLen(context.Background(), util.UserFollowHashPrefix+string(userId)).Val()
-	userFollowerNum := dao.RedisClient.HLen(context.Background(), util.UserFollowersHashPrefix+string(userId)).Val()
+	userFollowNum := dao.RedisClient.HLen(context.Background(), util.Key(util.UserFollowHashPrefix, userId)).Val()
+	userFollowerNum := dao.RedisClient.HLen(context.Background(), util.Key(util.UserFollowersHashPrefix, userId)).Val()
 	user.FollowCount = userFollowNum
 	user.FollowerCount = userFollowerNum
 	return user, nil
@@ -158,14 +159,21 @@ func VerifyJWT(tokenString, secret string) (userId int64, err error) {
 	// 获取声明
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		sub := int64(claims["sub"].(float64))
+		cachedTokenString, err := dao.RedisClient.Get(context.Background(), util.Key(util.TokenRefreshPrefix, sub)).Result()
+		if err != nil {
+			return 0, err
+		}
+		if tokenString != cachedTokenString {
+			return 0, errors.New("验证失败，请重新登录")
+		}
 		// iat := claims["iat"].(float64)
 		return sub, nil
 	}
-	return 0, errors.New("验证失败：无法获取声明")
+	return 0, errors.New("验证失败，无法获取声明")
 }
 
-func RefreshJWT(tokenString string) (err error) {
-	return dao.RedisClient.Expire(context.Background(), tokenString, time.Hour*24).Err()
+func RefreshJWT(userId int64) (err error) {
+	return dao.RedisClient.Expire(context.Background(), util.Key(util.TokenRefreshPrefix, userId), time.Hour*24).Err()
 }
 
 // 随机盐长度固定为4

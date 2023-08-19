@@ -17,6 +17,8 @@ const (
 
 	UserMessageTimePrefix = "USER_MESSAGE_KEY:"
 
+	TokenRefreshPrefix = "TOKEN_REFRESH:"
+
 	VidioBucketName   = "video"
 	PictureBucketName = "picture"
 )
@@ -87,6 +89,10 @@ func GetMinioAccessKeyID() string {
 
 func GetMinioSecretAccessKey() string {
 	return cfg.MinioSecretAccessKey
+}
+
+func Key(prefix string, val any) string {
+	return fmt.Sprintf("%v%v", prefix, val)
 }
 
 // const projectId = "tiktok:" // 项目标识符
