@@ -29,7 +29,7 @@ func main() {
 	if err2 != nil {
 		log.Fatal(err2.Error())
 	}
-	//tcp的resolver，返回一个tcpAddr,含有ip+port
+	//使用net.ResolveTCPAddr函数将服务地址（serviceAddr）解析为TCP地址（*net.TCPAddr）。
 	addr, err2 := net.ResolveTCPAddr("tcp", serviceAddr)
 	if err2 != nil {
 		log.Fatal(err2.Error())
