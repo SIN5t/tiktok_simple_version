@@ -15,9 +15,9 @@ import (
 
 var (
 	config      = viper.Init("video")
-	serviceName = config.Viper.GetString("server.name") //server.WithServerBasicInfo用到
-	serviceAddr = fmt.Sprintf("%s:%d", config.Viper.GetString("server.host"), config.Viper.GetInt("server.port"))
-	etcdAddr    = fmt.Sprintf("%s:%d", config.Viper.GetString("etcd.host"), config.Viper.GetInt("etcd.port"))
+	serviceName = config.GetString("server.name") //server.WithServerBasicInfo用到
+	serviceAddr = fmt.Sprintf("%s:%d", config.GetString("server.host"), config.GetInt("server.port"))
+	etcdAddr    = fmt.Sprintf("%s:%d", config.GetString("etcd.host"), config.GetInt("etcd.port"))
 	//signingKey  = config.Viper.GetString("JWT.signingKey")
 
 )
