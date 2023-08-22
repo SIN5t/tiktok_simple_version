@@ -3,12 +3,14 @@ module tiktok_v2
 go 1.20
 
 require (
-	github.com/BurntSushi/toml v0.3.1
+	github.com/bytedance/gopkg v0.0.0-20230728082804-614d0af6619b
 	github.com/cloudwego/fastpb v0.0.4
 	github.com/cloudwego/kitex v0.7.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/kitex-contrib/obs-opentelemetry v0.2.3
+	github.com/prometheus/common v0.26.0
+	github.com/redis/go-redis/v9 v9.1.0
 	github.com/spf13/viper v1.16.0
 	github.com/u2takey/ffmpeg-go v0.5.0
 	go.etcd.io/etcd/client/v3 v3.5.9
@@ -19,10 +21,12 @@ require (
 )
 
 require (
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
+	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/apache/thrift v0.13.0 // indirect
 	github.com/aws/aws-sdk-go v1.38.20 // indirect
-	github.com/bytedance/gopkg v0.0.0-20230728082804-614d0af6619b // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/choleraehyq/pid v0.0.17 // indirect
@@ -35,6 +39,7 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
@@ -57,6 +62,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
+	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
@@ -67,6 +73,7 @@ require (
 	github.com/oleiade/lane v1.0.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -99,6 +106,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20230526203410-71b5a4ffd15e // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230526203410-71b5a4ffd15e // indirect
 	google.golang.org/grpc v1.55.0 // indirect
+	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
