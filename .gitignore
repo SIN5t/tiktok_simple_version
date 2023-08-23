@@ -23,7 +23,7 @@ go.work
 .idea
 
 # Config file
-v2.0/config/db.yml
+#v2.0/config/db.yml
 config.toml
 
 # Redis
