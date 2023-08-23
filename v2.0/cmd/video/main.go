@@ -19,7 +19,6 @@ var (
 	serviceAddr = fmt.Sprintf("%s:%d", config.GetString("server.host"), config.GetInt("server.port"))
 	etcdAddr    = fmt.Sprintf("%s:%d", config.GetString("etcd.host"), config.GetInt("etcd.port"))
 	//signingKey  = config.Viper.GetString("JWT.signingKey")
-
 )
 
 func main() {
@@ -44,5 +43,4 @@ func main() {
 	if err := videoserver.Run(); err != nil {
 		logger.Fatalf("%v stopped with error: %v", serviceName, err.Error())
 	}
-
 }

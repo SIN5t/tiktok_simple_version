@@ -17,4 +17,4 @@ etcd:
   host: 0.0.0.0
   port: 2379
 password:
-  salt: "jbzx"
+  salt: "asdf"

@@ -5,7 +5,6 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"gorm.io/plugin/dbresolver"
 	"log"
 	"tiktok_v2/pkg/viper"
 )
@@ -40,19 +39,22 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	//配置db resolver 实现读写分离
-	replica1Dsn := getDsn("mysql.replica1")
-	replica2Dsn := getDsn("mysql.replica2")
-	err = _db.Use(dbresolver.Register(dbresolver.Config{
-		Sources:  []gorm.Dialector{mysql.Open(sourceDsn)},
-		Replicas: []gorm.Dialector{mysql.Open(replica1Dsn), mysql.Open(replica2Dsn)},
-		Policy:   dbresolver.RandomPolicy{},
-		// print sources/replicas mode in logger
-		TraceResolverMode: true,
-	}))
-	if err != nil {
-		log.Println(err)
-	}
+
+	// TODO 部署的时候切换
+	/*
+		//配置db resolver 实现读写分离
+		replica1Dsn := getDsn("mysql.replica1")
+		replica2Dsn := getDsn("mysql.replica2")
+		err = _db.Use(dbresolver.Register(dbresolver.Config{
+			Sources:  []gorm.Dialector{mysql.Open(sourceDsn)},
+			Replicas: []gorm.Dialector{mysql.Open(replica1Dsn), mysql.Open(replica2Dsn)},
+			Policy:   dbresolver.RandomPolicy{},
+			// print sources/replicas mode in logger
+			TraceResolverMode: true,
+		}))
+		if err != nil {
+			log.Println(err)
+		}*/
 	//创建表
 	err = _db.AutoMigrate(&Video{}, &User{})
 	if err != nil {
@@ -65,7 +67,6 @@ func init() {
 	}
 	db.SetMaxOpenConns(100)
 	db.SetMaxIdleConns(20)
-
 }
 
 func GetDB() *gorm.DB {
