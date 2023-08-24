@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/goTouch/TicTok_SimpleVersion/dao"
-	"github.com/goTouch/TicTok_SimpleVersion/domain"
-	"github.com/goTouch/TicTok_SimpleVersion/util"
+	"github.com/goForward/tictok_simple_version/dao"
+	"github.com/goForward/tictok_simple_version/domain"
+	"github.com/goForward/tictok_simple_version/util"
 )
 
 func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.Video, nextTimeInt64 int64, err error) {

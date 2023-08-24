@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/goTouch/TicTok_SimpleVersion/domain"
-	"github.com/goTouch/TicTok_SimpleVersion/service"
+	"github.com/goForward/tictok_simple_version/domain"
+	"github.com/goForward/tictok_simple_version/service"
 )
 
 func LoginLimit(c *gin.Context) {

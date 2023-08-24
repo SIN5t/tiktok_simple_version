@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/goTouch/TicTok_SimpleVersion/dao"
-	"github.com/goTouch/TicTok_SimpleVersion/domain"
+	"github.com/goForward/tictok_simple_version/dao"
+	"github.com/goForward/tictok_simple_version/domain"
 	"gorm.io/gorm"
 )
 

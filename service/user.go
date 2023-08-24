@@ -12,9 +12,9 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
-	"github.com/goTouch/TicTok_SimpleVersion/dao"
-	"github.com/goTouch/TicTok_SimpleVersion/domain"
-	"github.com/goTouch/TicTok_SimpleVersion/util"
+	"github.com/goForward/tictok_simple_version/dao"
+	"github.com/goForward/tictok_simple_version/domain"
+	"github.com/goForward/tictok_simple_version/util"
 	"golang.org/x/crypto/bcrypt"
 )
 

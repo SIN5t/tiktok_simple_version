@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/goTouch/TicTok_SimpleVersion/dao"
-	"github.com/goTouch/TicTok_SimpleVersion/router"
-	"github.com/goTouch/TicTok_SimpleVersion/util"
+	"github.com/goForward/tictok_simple_version/dao"
+	"github.com/goForward/tictok_simple_version/router"
+	"github.com/goForward/tictok_simple_version/util"
 )
 
 func main() {

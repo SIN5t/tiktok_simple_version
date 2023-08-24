@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	dao "github.com/goTouch/TicTok_SimpleVersion/dao"
-	"github.com/goTouch/TicTok_SimpleVersion/domain"
-	"github.com/goTouch/TicTok_SimpleVersion/service"
-	"github.com/goTouch/TicTok_SimpleVersion/util"
+	dao "github.com/goForward/tictok_simple_version/dao"
+	"github.com/goForward/tictok_simple_version/domain"
+	"github.com/goForward/tictok_simple_version/service"
+	"github.com/goForward/tictok_simple_version/util"
 )
 
 func Chat(c *gin.Context) {

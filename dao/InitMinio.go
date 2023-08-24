@@ -2,7 +2,7 @@ package dao
 
 import (
 	"context"
-	"github.com/goTouch/TicTok_SimpleVersion/util"
+	"github.com/goForward/tictok_simple_version/util"
 	"log"
 
 	"github.com/minio/minio-go/v7"

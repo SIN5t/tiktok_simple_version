@@ -1,4 +1,4 @@
-module github.com/goTouch/TicTok_SimpleVersion
+module github.com/goForward/tictok_simple_version
 
 go 1.20
 

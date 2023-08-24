@@ -2,8 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/goTouch/TicTok_SimpleVersion/controller"
-	"github.com/goTouch/TicTok_SimpleVersion/middleware"
+	"github.com/goForward/tictok_simple_version/controller"
+	"github.com/goForward/tictok_simple_version/middleware"
 )
 
 func InitRouter(r *gin.Engine) {
