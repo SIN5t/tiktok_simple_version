@@ -23,6 +23,7 @@ go.work
 .idea
 
 # Config file
+#v2.0/config/db.yml
 config.toml
 
 # Redis
@@ -30,3 +31,4 @@ dump.rdb
 
 # MinIO
 miniodata/
+v1.0/miniodata/
