@@ -43,6 +43,7 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 		//查出每个视频对于当前用户的喜欢状态，已经视频作者的关注状态
 		//注意前提是登入才能处理
 		if userIdInt64 != 0 { //已登入
+			//是否点赞
 			isFavorite := dao.RedisClient.
 				SIsMember(context.Background(), util.VideoFavoriteKeyPrefix+userIdStr, video.Id).
 				Val()
@@ -52,6 +53,9 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 				video.IsFavorite = true
 			}
 
+			/*//视频被点赞总数
+			dao.RedisClient.
+				SCard(context.Background(), util.VideoFavoriteKeyPrefix+userIdStr)*/
 			//关注
 			isFollowed := dao.RedisClient.
 				HExists(context.Background(), util.UserFollowHashPrefix+userIdStr, strconv.FormatInt(video.AuthorId, 10)).
