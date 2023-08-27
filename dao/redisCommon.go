@@ -43,6 +43,10 @@ func SyncFavoriteToMysql() (err error) {
 		for _, key := range keys {
 			//先获取这个key对应的值
 			videoIdList, err := RedisClient.SMembers(context.Background(), key).Result()
+			//TODO go无法存储[]string格式，求出的时候需要反序列化
+			if len(videoIdList) == 0 {
+				return nil
+			}
 			if err != nil {
 				log.Printf("Failed to get members: %s\n", err.Error())
 				return err
@@ -67,12 +71,11 @@ func SyncFavoriteToMysql() (err error) {
 			//迭代结束
 			break
 		}
-
 	}
-	err = RedisClient.Close()
+	/*err = RedisClient.Close()
 	if err != nil {
 		return err
-	}
+	}*/
 	return nil
 }
 
@@ -95,7 +98,7 @@ func SyncRelationToMysql() (err error) {
 	cursor := uint64(0)
 	for {
 
-		err, newCursor := relationMultiplex(context.Background(), cursor, matchPattern, 300)
+		err, newCursor := relationMultiplex(context.Background(), cursor, matchPattern, 300, "FollowIds")
 		if err != nil {
 			return err
 		}
@@ -111,7 +114,7 @@ func SyncRelationToMysql() (err error) {
 	matchPattern1 := util.UserFollowersHashPrefix + "*"
 	cursor1 := uint64(0)
 	for {
-		err, nextCursor := relationMultiplex(context.Background(), cursor1, matchPattern1, 300)
+		err, nextCursor := relationMultiplex(context.Background(), cursor1, matchPattern1, 300, "FollowerIds")
 		if err != nil {
 			return err
 		}
@@ -123,22 +126,29 @@ func SyncRelationToMysql() (err error) {
 		}
 	}
 
-	err = RedisClient.Close()
+	/*err = RedisClient.Close()
 	if err != nil {
 		return err
-	}
+	}*/
 	return nil
 
 }
 
-func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, count int64) (error, uint64) {
+func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, count int64, column string) (error, uint64) {
 	keys, newCursor, err := RedisClient.Scan(ctx, cursor, matchPattern, count).Result()
 	if err != nil {
 		return err, 0
 	}
+
 	for _, key := range keys {
 		//redis中取出每个key对应的value中的字段，不取值
-		toUserIdList := RedisClient.HKeys(context.Background(), key)
+		toUserIdList, err := RedisClient.HKeys(context.Background(), key).Result()
+		if len(toUserIdList) == 0 {
+			return nil, 0
+		}
+		if err != nil {
+			return err, 0
+		}
 		//当前userId
 		userId, err := strconv.ParseInt(strings.Split(key, ":")[1], 10, 64)
 		if err != nil {
@@ -148,7 +158,8 @@ func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, 
 		if err = DB.
 			Model(&domain.User{}).
 			Where("Id = ?", userId).
-			Update("FollowIds", toUserIdList).
+			//Update("FollowIds", toUserIdList).
+			Update(column, toUserIdList).
 			Error; err != nil {
 			return err, 0
 		}

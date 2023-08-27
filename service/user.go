@@ -113,7 +113,7 @@ func User(userId int64) (user domain.User, err error) {
 	if userId <= 0 {
 		return user, errors.New("不合法的用户id")
 	}
-	err = dao.DB.Model(&domain.User{}).Where("id = ?", userId).Find(&user).Error
+	err = dao.DB.Model(&domain.User{}).Omit("favorite_video_ids,follower_ids,follow_ids").Where("id = ?", userId).Find(&user).Error
 	if err != nil {
 		return domain.User{}, errors.New("用户不存在")
 	}
