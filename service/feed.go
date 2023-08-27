@@ -28,7 +28,7 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 
 	// 返回这次视频最近的投稿时间-1，下次即可获取比这次视频旧的视频
 	nextTimeInt64 = videoList[len(videoList)-1].CreatTime.UnixMilli() - 1
-	url := dao.MinioClient.EndpointURL().String() + "/" + util.VidioBucketName + "/"
+	url := dao.MinioClient.EndpointURL().String() + "/" + util.VideoBucketName + "/"
 	picurl := dao.MinioClient.EndpointURL().String() + "/" + util.PictureBucketName + "/"
 	for i := 0; i < len(videoList); i++ {
 		// TODO 丰富Video的额外字段，例如author

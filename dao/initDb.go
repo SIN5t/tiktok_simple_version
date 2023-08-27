@@ -27,6 +27,7 @@ const (
 )
 
 func InitDB() {
+
 	//datasource
 	dsn := util.GetMySQLDSN()
 
@@ -59,6 +60,9 @@ func InitDB() {
 		//return
 		log.Println(err)
 	}
+
+	// *********************   redis   ************************************************
+
 	RdbToken = redis.NewFailoverClient(&redis.FailoverOptions{
 		MasterName:    util.GetRedisMasterName(),
 		SentinelAddrs: util.GetRedisSentinelAddrs(),
@@ -73,5 +77,18 @@ func InitDB() {
 
 	// 初始化 Redis 客户端
 	RedisClient = redis.NewClient(redisConfig)
+	if _, err := RedisClient.Ping(ctx).Result(); err != nil {
+		log.Fatal("redis连接失败" + err.Error())
+	}
+	log.Println("successfully connected to Redis server!")
+
+	//开启定时同步到数据库
+	if err = ScheduleSyncFavoriteToMysql(); err != nil {
+		log.Println(err.Error())
+	}
+	if err = ScheduleSyncRelationToMysql(); err != nil {
+		log.Println(err.Error())
+	}
+	log.Println("MySQL synchronization is enabled.")
 
 }

@@ -34,7 +34,7 @@ func InsertVideos(videoName string, title string, coverName string, userId int64
 
 // QueryAuthorPublishedVideo 查询用户发布的视频，以展示在个人列表中
 func QueryAuthorPublishedVideo(authorIdInt64 int64) (videoList []domain.Video, err error) {
-	url := dao.MinioClient.EndpointURL().String() + "/" + util.VidioBucketName + "/"
+	url := dao.MinioClient.EndpointURL().String() + "/" + util.VideoBucketName + "/"
 	picurl := dao.MinioClient.EndpointURL().String() + "/" + util.PictureBucketName + "/"
 	err = dao.DB.Model(&domain.Video{}).
 		Where("author_id = ?", authorIdInt64).

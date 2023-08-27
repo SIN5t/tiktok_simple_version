@@ -28,7 +28,7 @@ func InitMinio() {
 	} else {
 		log.Printf("%#v\n", MinioClient)
 		log.Println(MinioClient.EndpointURL())
-		createBucket(util.VidioBucketName)
+		createBucket(util.VideoBucketName)
 		createBucket(util.PictureBucketName)
 	}
 

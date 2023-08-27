@@ -13,13 +13,13 @@ const (
 	UserFollowHashPrefix    = "USER_FOLLOWS_KEY:"   // 当前用户的关注hash列表，field是关注用户的id，value是对应的名字
 	UserFollowersHashPrefix = "USER_FOLLOWERS_KEY:" // 当前用户的粉丝列表。field是粉丝id,value是粉丝名字。
 
-	VideoFavoriteKeyPrefix = "VIDEO_FAVORITE_KEY:" // 用户点赞视频
+	VideoFavoriteKeyPrefix = "VIDEO_FAVORITE_KEY:" // 存用户点赞视频的ids
 
 	UserMessageTimePrefix = "USER_MESSAGE_KEY:"
 
 	TokenRefreshPrefix = "TOKEN_REFRESH:"
 
-	VidioBucketName   = "video"
+	VideoBucketName   = "video"
 	PictureBucketName = "picture"
 )
 
