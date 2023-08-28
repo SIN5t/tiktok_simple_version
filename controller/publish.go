@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -20,7 +21,6 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-// 既然是发布视频，首先需要校验token，登入的问题
 // Publish 获取用户投稿的视频并保存到本地
 func Publish(c *gin.Context) {
 	id := c.GetInt64("userId")
@@ -54,7 +54,12 @@ func Publish(c *gin.Context) {
 		})
 		return
 	}
-	defer file.Close()
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			return
+		}
+	}(file)
 	miniodata, err := io.ReadAll(file)
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{
@@ -95,7 +100,10 @@ func Publish(c *gin.Context) {
 
 	if err == nil {
 		buf := &bytes.Buffer{}
-		buf.ReadFrom(jpeg)
+		_, err := buf.ReadFrom(jpeg)
+		if err != nil {
+			return
+		}
 		putSnapshotToOss(buf, util.PictureBucketName, filename+".jpg")
 		coverGenerateStatus = true
 	} else {

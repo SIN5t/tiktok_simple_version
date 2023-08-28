@@ -18,7 +18,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// TODO: LoginLimit 中间件服务，限制注册登录操作过于频繁。
 func LoginLimit(ipAddress string) bool {
 	// 错误可忽略
 	times, _ := dao.RdbToken.Get(context.Background(), ipAddress).Int64()
