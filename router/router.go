@@ -46,6 +46,6 @@ func InitRouter(r *gin.Engine) {
 
 	// message
 	msgR := apiR.Group("/message").Use(middleware.AuthJWTForce)
-	msgR.GET("/chat/", controller.Chat)          // TODO
-	msgR.POST("/action/", controller.ChatAction) // TODO
+	msgR.GET("/chat/", controller.Chat)
+	msgR.POST("/action/", controller.ChatAction)
 }

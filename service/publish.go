@@ -16,7 +16,7 @@ func InsertVideos(videoName string, title string, coverName string, userId int64
 		Title:    title,
 		PlayUrl:  videoName,
 		CoverUrl: coverName,
-		//CreatTime: time.Time{}, // TODO 这个字段 为什么没赋值呢？去研究一下
+		//CreatTime: time.Time{},
 	}
 	// 若生成封面失败，视频的封面地址会被替换为默认封面的地址
 	if !coverGenerateStatus {

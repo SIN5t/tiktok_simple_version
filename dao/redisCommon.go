@@ -43,11 +43,11 @@ func SyncFavoriteToMysql() (err error) {
 		for _, key := range keys {
 			//先获取这个key对应的值
 			videoIdList, err := RedisClient.SMembers(context.Background(), key).Result()
-			//TODO go无法存储[]string格式，求出的时候需要反序列化
 			if len(videoIdList) == 0 {
 				return nil
 			}
-			if err != nil {
+			videoIdInt64List, err3 := strToInt64Slice(videoIdList)
+			if err != nil || err3 != nil {
 				log.Printf("Failed to get members: %s\n", err.Error())
 				return err
 			}
@@ -60,7 +60,7 @@ func SyncFavoriteToMysql() (err error) {
 			if err = DB.
 				Model(&domain.User{}).
 				Where("Id = ?", userId).
-				UpdateColumn("FavoriteVideoIds", videoIdList).
+				UpdateColumn("FavoriteVideoIds", videoIdInt64List).
 				Error; err != nil {
 				return err
 			}
@@ -149,8 +149,10 @@ func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, 
 		if err != nil {
 			return err, 0
 		}
+		idInt64Lis, err := strToInt64Slice(toUserIdList)
 		//当前userId
 		userId, err := strconv.ParseInt(strings.Split(key, ":")[1], 10, 64)
+
 		if err != nil {
 			return err, 0
 		}
@@ -159,7 +161,7 @@ func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, 
 			Model(&domain.User{}).
 			Where("Id = ?", userId).
 			//Update("FollowIds", toUserIdList).
-			Update(column, toUserIdList).
+			Update(column, idInt64Lis).
 			Error; err != nil {
 			return err, 0
 		}
@@ -167,4 +169,16 @@ func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, 
 	}
 	return nil, newCursor
 
+}
+
+func strToInt64Slice(userIdStr []string) ([]int64, error) {
+	userIdInt64 := make([]int64, 0)
+	for _, idStr := range userIdStr {
+		idInt64, err2 := strconv.ParseInt(idStr, 10, 64)
+		if err2 != nil {
+			return nil, err2
+		}
+		userIdInt64 = append(userIdInt64, idInt64)
+	}
+	return userIdInt64, nil
 }
