@@ -10,7 +10,7 @@ import (
 	"github.com/goForward/tictok_simple_version/service"
 )
 
-// FavoriteAction
+// FavoriteAction 点赞
 func FavoriteAction(c *gin.Context) {
 
 	//验证token，合法的话返回userId

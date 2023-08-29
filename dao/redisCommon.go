@@ -5,6 +5,7 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/goForward/tictok_simple_version/domain"
 	"github.com/goForward/tictok_simple_version/util"
+	"github.com/goccy/go-json"
 	"log"
 	"strconv"
 	"strings"
@@ -43,14 +44,17 @@ func SyncFavoriteToMysql() (err error) {
 		for _, key := range keys {
 			//先获取这个key对应的值
 			videoIdList, err := RedisClient.SMembers(context.Background(), key).Result()
-			if len(videoIdList) == 0 {
-				return nil
-			}
-			videoIdInt64List, err3 := strToInt64Slice(videoIdList)
-			if err != nil || err3 != nil {
+
+			if err != nil {
 				log.Printf("Failed to get members: %s\n", err.Error())
 				return err
 			}
+			//[]string复杂类型转json
+			videoIdsJson, err := json.Marshal(videoIdList)
+			if err != nil {
+				return err
+			}
+
 			//这个key对应的id
 			userId, err := strconv.ParseInt(strings.Split(key, ":")[1], 10, 64)
 			if err != nil {
@@ -60,7 +64,7 @@ func SyncFavoriteToMysql() (err error) {
 			if err = DB.
 				Model(&domain.User{}).
 				Where("Id = ?", userId).
-				UpdateColumn("FavoriteVideoIds", videoIdInt64List).
+				UpdateColumn("FavoriteVideoIds", videoIdsJson).
 				Error; err != nil {
 				return err
 			}
@@ -143,13 +147,16 @@ func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, 
 	for _, key := range keys {
 		//redis中取出每个key对应的value中的字段，不取值
 		toUserIdList, err := RedisClient.HKeys(context.Background(), key).Result()
-		if len(toUserIdList) == 0 {
-			return nil, 0
-		}
+
 		if err != nil {
 			return err, 0
 		}
-		idInt64Lis, err := strToInt64Slice(toUserIdList)
+
+		//[]string复杂类型转json存储到mysql中
+		toUserIdJson, err := json.Marshal(toUserIdList)
+		if err != nil {
+			return err, 0
+		}
 		//当前userId
 		userId, err := strconv.ParseInt(strings.Split(key, ":")[1], 10, 64)
 
@@ -161,7 +168,7 @@ func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, 
 			Model(&domain.User{}).
 			Where("Id = ?", userId).
 			//Update("FollowIds", toUserIdList).
-			Update(column, idInt64Lis).
+			Update(column, toUserIdJson).
 			Error; err != nil {
 			return err, 0
 		}
@@ -171,7 +178,7 @@ func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, 
 
 }
 
-func strToInt64Slice(userIdStr []string) ([]int64, error) {
+/*func strToInt64Slice(userIdStr []string) ([]int64, error) {
 	userIdInt64 := make([]int64, 0)
 	for _, idStr := range userIdStr {
 		idInt64, err2 := strconv.ParseInt(idStr, 10, 64)
@@ -181,4 +188,4 @@ func strToInt64Slice(userIdStr []string) ([]int64, error) {
 		userIdInt64 = append(userIdInt64, idInt64)
 	}
 	return userIdInt64, nil
-}
+}*/
