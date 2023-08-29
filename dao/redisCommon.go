@@ -61,13 +61,21 @@ func SyncFavoriteToMysql() (err error) {
 				return err
 			}
 			//更新数据库
-			if err = DB.
-				Model(&domain.User{}).
-				Where("Id = ?", userId).
-				UpdateColumn("FavoriteVideoIds", videoIdsJson).
-				Error; err != nil {
-				return err
+			result := DB.FirstOrCreate(&domain.UserRedisSync{}, domain.UserRedisSync{UserId: userId})
+			if result.Error != nil {
+				return result.Error
 			}
+			if result.RowsAffected > 0 {
+				//存在记录，更新值
+				if err = DB.
+					Model(&domain.UserRedisSync{}).
+					Where("Id = ?", userId).
+					UpdateColumn("FavoriteVideoIds", videoIdsJson).
+					Error; err != nil {
+					return err
+				}
+			}
+
 		}
 		//当前这一轮redis遍历完成，下一轮
 		cursor = newCursor

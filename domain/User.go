@@ -12,9 +12,9 @@ type User struct {
 	Name           string `json:"name" gorm:"type:varchar(32); index"`
 	Pwd            string `json:"-" gorm:"type:char(60)"`
 
-	FavoriteVideoIds []string `json:"favorite_video_ids" gorm:"type:json"`
-	FollowerIds      []string `json:"follower_ids" gorm:"type:json" `
-	FollowIds        []string `json:"follow_ids" gorm:"type:json" `
+	/*	FavoriteVideoIds []string `json:"favorite_video_ids" gorm:"type:json"`
+		FollowerIds      []string `json:"follower_ids" gorm:"type:json" `
+		FollowIds        []string `json:"follow_ids" gorm:"type:json" `*/
 }
 
 type UserLoginResponse struct {
