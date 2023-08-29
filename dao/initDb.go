@@ -22,10 +22,6 @@ var (
 	RdbToken    *redis.Client
 )
 
-const (
-	numTokenDB = iota
-)
-
 func InitDB() {
 
 	//datasource
@@ -63,11 +59,6 @@ func InitDB() {
 
 	// *********************   redis   ************************************************
 
-	RdbToken = redis.NewFailoverClient(&redis.FailoverOptions{
-		MasterName:    util.GetRedisMasterName(),
-		SentinelAddrs: util.GetRedisSentinelAddrs(),
-		DB:            numTokenDB,
-	})
 	// 创建 Redis 客户端配置
 	redisConfig := &redis.Options{
 		Addr:     util.GetRedisAddr(), // Redis 服务器地址和端口
@@ -77,18 +68,18 @@ func InitDB() {
 
 	// 初始化 Redis 客户端
 	RedisClient = redis.NewClient(redisConfig)
-	/*if _, err := RedisClient.Ping(ctx).Result(); err != nil {
+	if _, err := RedisClient.Ping(ctx).Result(); err != nil {
 		log.Fatal("redis连接失败" + err.Error())
 	}
 	log.Println("successfully connected to Redis server!")
 
-		//开启定时同步到数据库
-		if err = ScheduleSyncFavoriteToMysql(); err != nil {
-			log.Println(err.Error())
-		}
-		if err = ScheduleSyncRelationToMysql(); err != nil {
-			log.Println(err.Error())
-		}
-		log.Println("MySQL synchronization is enabled.")*/
+	//开启定时同步到数据库
+	if err = ScheduleSyncFavoriteToMysql(); err != nil {
+		log.Println(err.Error())
+	}
+	if err = ScheduleSyncRelationToMysql(); err != nil {
+		log.Println(err.Error())
+	}
+	log.Println("MySQL synchronization is enabled.")
 
 }
