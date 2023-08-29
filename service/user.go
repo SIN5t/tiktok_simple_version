@@ -68,7 +68,7 @@ func Register(username, password string) (id int64, tokenString string, err erro
 	}
 
 	// 缓存jwt TODO 是否不再需要
-	//dao.RedisClient.Set(context.Background(), tokenString, user.Id, 0)
+	dao.RedisClient.Set(context.Background(), tokenString, user.Id, 0)
 
 	return user.Id, tokenString, nil
 }
@@ -76,7 +76,11 @@ func Register(username, password string) (id int64, tokenString string, err erro
 func Login(username, password string) (id int64, token string, err error) {
 	// 查询用户
 	user := domain.User{}
-	dao.DB.Model(&domain.User{}).Select("id,Salt,Pwd").Where("name = ?", username).Find(&user)
+	/*dao.DB.Model(&domain.User{}).
+	//Select("id,Salt,Pwd").
+	Where("name = ?", username).
+	Find(&user)*/
+	dao.DB.Model(&domain.User{}).Where("name = ?", username).Find(&user)
 	if user.Id == 0 {
 		err = errors.New("用户不存在！")
 		return
@@ -112,7 +116,11 @@ func User(userId int64) (user domain.User, err error) {
 	if userId <= 0 {
 		return user, errors.New("不合法的用户id")
 	}
-	err = dao.DB.Model(&domain.User{}).Omit("favorite_video_ids,follower_ids,follow_ids").Where("id = ?", userId).Find(&user).Error
+	/*err = dao.DB.Model(&domain.User{}).
+	//Select("Id,Salt,Name,Pwd").
+	Where("id = ?", userId).
+	Find(&user).Error*/
+	err = dao.DB.Model(&domain.User{}).Where("id = ?", userId).Find(&user).Error
 	if err != nil {
 		return domain.User{}, errors.New("用户不存在")
 	}

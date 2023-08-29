@@ -13,7 +13,7 @@ func InitRouter(r *gin.Engine) {
 	apiR := r.Group("/douyin")
 
 	// feed
-	feedR := apiR.Group("/feed")
+	feedR := apiR.Group("/feed").Use(middleware.AuthJWTOptional)
 	feedR.GET("/", controller.Feed)
 
 	// user

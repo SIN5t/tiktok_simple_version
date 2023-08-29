@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -54,12 +53,7 @@ func Publish(c *gin.Context) {
 		})
 		return
 	}
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
-			return
-		}
-	}(file)
+	defer file.Close()
 	miniodata, err := io.ReadAll(file)
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{
@@ -100,10 +94,7 @@ func Publish(c *gin.Context) {
 
 	if err == nil {
 		buf := &bytes.Buffer{}
-		_, err := buf.ReadFrom(jpeg)
-		if err != nil {
-			return
-		}
+		buf.ReadFrom(jpeg)
 		putSnapshotToOss(buf, util.PictureBucketName, filename+".jpg")
 		coverGenerateStatus = true
 	} else {
