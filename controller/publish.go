@@ -20,7 +20,6 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-// 既然是发布视频，首先需要校验token，登入的问题
 // Publish 获取用户投稿的视频并保存到本地
 func Publish(c *gin.Context) {
 	id := c.GetInt64("userId")

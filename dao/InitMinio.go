@@ -51,7 +51,7 @@ func createBucket(bucketName string) {
 			MinioClient.SetBucketPolicy(ctx, bucketName, s)
 			log.Printf("已存在 %s\n", bucketName)
 		} else {
-			log.Fatalln("minio创建错误 %s", err)
+			log.Fatalf("minio创建错误 %s\n", err)
 		}
 	} else {
 		MinioClient.SetBucketPolicy(ctx, bucketName, s)

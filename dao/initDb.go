@@ -22,10 +22,6 @@ var (
 	RdbToken    *redis.Client
 )
 
-const (
-	numTokenDB = iota
-)
-
 func InitDB() {
 
 	//datasource
@@ -55,7 +51,7 @@ func InitDB() {
 	sqlDB.SetConnMaxLifetime(30 * time.Second)
 
 	//创建数据库表格或更新已存在的表格
-	err = DB.AutoMigrate(&domain.User{}, &domain.Video{}, &domain.Comment{}, &domain.Message{})
+	err = DB.AutoMigrate(&domain.User{}, &domain.Video{}, &domain.Comment{}, &domain.Message{}, &domain.UserRedisSync{})
 	if err != nil {
 		//return
 		log.Println(err)
@@ -63,11 +59,6 @@ func InitDB() {
 
 	// *********************   redis   ************************************************
 
-	RdbToken = redis.NewFailoverClient(&redis.FailoverOptions{
-		MasterName:    util.GetRedisMasterName(),
-		SentinelAddrs: util.GetRedisSentinelAddrs(),
-		DB:            numTokenDB,
-	})
 	// 创建 Redis 客户端配置
 	redisConfig := &redis.Options{
 		Addr:     util.GetRedisAddr(), // Redis 服务器地址和端口
@@ -83,12 +74,19 @@ func InitDB() {
 	log.Println("successfully connected to Redis server!")
 
 	//开启定时同步到数据库
-	if err = ScheduleSyncFavoriteToMysql(); err != nil {
+	if err = ScheduleSyncFavVideoList(); err != nil {
 		log.Println(err.Error())
 	}
-	if err = ScheduleSyncRelationToMysql(); err != nil {
+	if err = ScheduleSyncRelation(); err != nil {
 		log.Println(err.Error())
 	}
+	if err = ScheduleSyncVideoBeLikedNum(); err != nil {
+		log.Println(err.Error())
+	}
+	if err = ScheduleSyncAuthorBeLikedNum(); err != nil {
+		log.Println(err.Error())
+	}
+
 	log.Println("MySQL synchronization is enabled.")
 
 }

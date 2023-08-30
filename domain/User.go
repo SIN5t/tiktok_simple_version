@@ -1,20 +1,17 @@
 package domain
 
 type User struct {
-	// id、密码、随机盐字段在返回给用户时应屏蔽
 	IsFollow       bool   `json:"is_follow" gorm:"-"`
 	Id             int64  `json:"id" gorm:"primaryKey"`
 	FollowCount    int64  `json:"follow_count,omitempty" gorm:"-" `
 	FollowerCount  int64  `json:"follower_count,omitempty" gorm:"-"`
-	TotalFavorited int64  `json:"total_favorited,omitempty" gorm:"-"`
-	FavoriteCount  int64  `json:"favorite_count,omitempty"`
+	TotalFavorited int64  `json:"total_favorited,omitempty" ` //获赞次数
+	FavoriteCount  int64  `json:"favorite_count,omitempty" gorm:"-"`
 	Salt           string `json:"-" gorm:"type:char(4)"`
 	Name           string `json:"name" gorm:"type:varchar(32); index"`
 	Pwd            string `json:"-" gorm:"type:char(60)"`
+	//avatar         string `json:"avatar"` //头像
 
-	FavoriteVideoIds []string `json:"favorite_video_ids" gorm:"omitempty"`
-	FollowerIds      []string `json:"follower_ids" gorm:"omitempty"`
-	FollowIds        []string `json:"follow_ids" gorm:"omitempty"`
 }
 
 type UserLoginResponse struct {

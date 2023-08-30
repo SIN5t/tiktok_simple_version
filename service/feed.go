@@ -31,7 +31,7 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 	url := dao.MinioClient.EndpointURL().String() + "/" + util.VideoBucketName + "/"
 	picurl := dao.MinioClient.EndpointURL().String() + "/" + util.PictureBucketName + "/"
 	for i := 0; i < len(videoList); i++ {
-		// TODO 丰富Video的额外字段，例如author
+
 		video := &videoList[i]
 		if videoList[i].CoverUrl == "" {
 			videoList[i].CoverUrl = "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg"
