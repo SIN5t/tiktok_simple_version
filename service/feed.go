@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
+	"github.com/goForward/tictok_simple_version/config"
 	"strconv"
 	"time"
 
 	"github.com/goForward/tictok_simple_version/dao"
 	"github.com/goForward/tictok_simple_version/domain"
-	"github.com/goForward/tictok_simple_version/util"
 )
 
 func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.Video, nextTimeInt64 int64, err error) {
@@ -28,8 +28,8 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 
 	// 返回这次视频最近的投稿时间-1，下次即可获取比这次视频旧的视频
 	nextTimeInt64 = videoList[len(videoList)-1].CreatTime.UnixMilli() - 1
-	url := dao.MinioClient.EndpointURL().String() + "/" + util.VideoBucketName + "/"
-	picurl := dao.MinioClient.EndpointURL().String() + "/" + util.PictureBucketName + "/"
+	url := dao.MinioClient.EndpointURL().String() + "/" + config.VideoBucketName + "/"
+	picurl := dao.MinioClient.EndpointURL().String() + "/" + config.PictureBucketName + "/"
 	for i := 0; i < len(videoList); i++ {
 
 		video := &videoList[i]
@@ -45,7 +45,7 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 		if userIdInt64 != 0 { //已登入
 			//是否点赞
 			isFavorite := dao.RedisClient.
-				SIsMember(context.Background(), util.VideoFavoriteKeyPrefix+userIdStr, video.Id).
+				SIsMember(context.Background(), config.VideoFavoriteKeyPrefix+userIdStr, video.Id).
 				Val()
 
 			if isFavorite {
@@ -58,7 +58,7 @@ func FeedService(userIdInt64 int64, latestTimeInt64 int64) (videoList []domain.V
 				SCard(context.Background(), util.VideoFavoriteKeyPrefix+userIdStr)*/
 			//关注
 			isFollowed := dao.RedisClient.
-				HExists(context.Background(), util.UserFollowHashPrefix+userIdStr, strconv.FormatInt(video.AuthorId, 10)).
+				HExists(context.Background(), config.UserFollowHashPrefix+userIdStr, strconv.FormatInt(video.AuthorId, 10)).
 				Val()
 
 			if isFollowed {

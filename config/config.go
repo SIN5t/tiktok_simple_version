@@ -1,10 +1,9 @@
-package util
+package config
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/pelletier/go-toml/v2"
+	"os"
 )
 
 const (
@@ -42,7 +41,7 @@ type Config struct {
 var cfg Config
 
 func InitConfig() {
-	doc, err := os.ReadFile("./config.toml")
+	doc, err := os.ReadFile("./config/config.toml")
 	if err != nil {
 		panic(fmt.Errorf("读取配置文件 config.toml 失败: %w", err))
 	}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/goForward/tictok_simple_version/config"
 	"io"
 	"log"
 	"net/http"
@@ -64,7 +65,7 @@ func Publish(c *gin.Context) {
 	}
 	_, err = dao.MinioClient.PutObject(
 		c,                          // 上下文。
-		util.VideoBucketName,       // 存储桶名称。
+		config.VideoBucketName,     // 存储桶名称。
 		filename,                   // 存储对象名称。
 		bytes.NewBuffer(miniodata), // 读取对象的内容。
 		int64(len(miniodata)),      // 对象的大小。
@@ -80,7 +81,7 @@ func Publish(c *gin.Context) {
 	reqParams := make(url.Values)
 	presignedURL, err := dao.MinioClient.PresignedGetObject(
 		c,                               // 上下文。
-		util.VideoBucketName,            // 存储桶名称。
+		config.VideoBucketName,          // 存储桶名称。
 		filename,                        // 存储对象名称。
 		time.Duration(1000)*time.Second, // 过期时间，有效期为1小时。
 		reqParams,                       // minio.RequestHeaders，用户可以通过这个参数设置请求头。
@@ -95,7 +96,7 @@ func Publish(c *gin.Context) {
 	if err == nil {
 		buf := &bytes.Buffer{}
 		buf.ReadFrom(jpeg)
-		putSnapshotToOss(buf, util.PictureBucketName, filename+".jpg")
+		putSnapshotToOss(buf, config.PictureBucketName, filename+".jpg")
 		coverGenerateStatus = true
 	} else {
 		log.Println(err)

@@ -3,8 +3,8 @@ package dao
 import (
 	"context"
 	"github.com/go-co-op/gocron"
+	"github.com/goForward/tictok_simple_version/config"
 	"github.com/goForward/tictok_simple_version/domain"
-	"github.com/goForward/tictok_simple_version/util"
 	"log"
 	"strconv"
 	"strings"
@@ -15,7 +15,7 @@ import (
 
 func ScheduleSyncFavVideoList() error {
 	scheduler := gocron.NewScheduler(time.Local) ///定时任务
-	_, err := scheduler.Every(10).
+	_, err := scheduler.Every(60).
 		Tag("favoriteRedis").
 		Seconds().
 		Do(SyncFavVideoList)
@@ -27,7 +27,7 @@ func ScheduleSyncFavVideoList() error {
 }
 func ScheduleSyncRelation() error {
 	scheduler := gocron.NewScheduler(time.Local)
-	_, err := scheduler.Every(10).
+	_, err := scheduler.Every(60).
 		Tag("relationRedis").
 		Second().
 		Do(SyncRelationToMysql)
@@ -67,7 +67,7 @@ func ScheduleSyncAuthorBeLikedNum() error {
 // SyncFavVideoList 视频作者获赞数同步、点赞视频列表同步
 func SyncFavVideoList() (err error) {
 	//点赞视频列表同步
-	matchPattern := util.VideoFavoriteKeyPrefix + "*"
+	matchPattern := config.VideoFavoriteKeyPrefix + "*"
 	cursor := uint64(0)
 	for {
 		keys, newCursor, err := RedisClient.Scan(context.Background(), cursor, matchPattern, 500).Result()
@@ -98,7 +98,7 @@ func SyncFavVideoList() (err error) {
 			}
 			//不存在，就创建
 			userRedisSync := domain.UserRedisSync{}
-			DB.Where(domain.UserRedisSync{UserId: userId}).FirstOrCreate(&userRedisSync)
+			DB.Select("user_id").Where(domain.UserRedisSync{UserId: userId}).FirstOrCreate(&userRedisSync)
 			//赋值
 			userRedisSync.FavoriteVideoId = videoIdMysql
 			if err = DB.Model(&domain.UserRedisSync{}).
@@ -122,7 +122,7 @@ func SyncFavVideoList() (err error) {
 // SyncVideoBeLikedNum 视频获赞数同步
 func SyncVideoBeLikedNum() (err error) {
 	//点赞视频列表同步
-	matchPattern := util.VideoBeLikedNum + "*"
+	matchPattern := config.VideoBeLikedNum + "*"
 	cursor := uint64(0)
 	for {
 		keys, newCursor, err := RedisClient.Scan(context.Background(), cursor, matchPattern, 500).Result()
@@ -164,7 +164,7 @@ func SyncVideoBeLikedNum() (err error) {
 // SyncAuthorLikedNum 作者获赞数同步
 func SyncAuthorLikedNum() (err error) {
 	//点赞视频列表同步
-	matchPattern := util.AuthorBeLikedNum + "*"
+	matchPattern := config.AuthorBeLikedNum + "*"
 	cursor := uint64(0)
 	for {
 		keys, newCursor, err := RedisClient.Scan(context.Background(), cursor, matchPattern, 500).Result()
@@ -206,7 +206,7 @@ func SyncAuthorLikedNum() (err error) {
 // SyncRelationToMysql 用户关系同步
 func SyncRelationToMysql() (err error) {
 	//1. 同步用户关注列表到mysql中
-	matchPattern := util.UserFollowHashPrefix + "*"
+	matchPattern := config.UserFollowHashPrefix + "*"
 	cursor := uint64(0)
 	for {
 
@@ -223,7 +223,7 @@ func SyncRelationToMysql() (err error) {
 	}
 
 	//2. 同步用户粉丝列表到mysql中
-	matchPattern1 := util.UserFollowersHashPrefix + "*"
+	matchPattern1 := config.UserFollowersHashPrefix + "*"
 	cursor1 := uint64(0)
 	for {
 		err, nextCursor := relationMultiplex(context.Background(), cursor1, matchPattern1, 300, "FollowerIds")
@@ -272,7 +272,7 @@ func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, 
 		//构造数据结构
 		var userRedisSync domain.UserRedisSync
 		//不存在，就创建
-		DB.Where(domain.UserRedisSync{UserId: userId}).FirstOrCreate(&userRedisSync)
+		DB.Select("user_id").Where(domain.UserRedisSync{UserId: userId}).FirstOrCreate(&userRedisSync)
 		//赋值
 		if column == "FollowerIds" {
 			userRedisSync.FollowerId = toUserIdMysql

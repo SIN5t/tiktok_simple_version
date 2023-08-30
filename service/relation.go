@@ -3,11 +3,12 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/goForward/tictok_simple_version/config"
 	"strconv"
+	"time"
 
 	"github.com/goForward/tictok_simple_version/dao"
 	"github.com/goForward/tictok_simple_version/domain"
-	"github.com/goForward/tictok_simple_version/util"
 )
 
 // FollowAction Action 进行关注和取消关注，关键维护两个hash：当前用户的关注列表，当前用户的粉丝列表
@@ -33,30 +34,32 @@ func FollowAction(userIdInt64 int64, toUserIdInt64 int64, actionType int) (err e
 		//关注列表加字段
 		followRes := dao.RedisClient.HSetNX(
 			context.Background(),
-			util.UserFollowHashPrefix+userIdStr,
+			config.UserFollowHashPrefix+userIdStr,
 			toUserIdStr,
 			toUserNameStr,
 		).Val()
+		dao.RedisClient.Expire(context.Background(), config.UserFollowHashPrefix+userIdStr, 6*30*24*time.Hour)
 		if !followRes {
 			return errors.New("已关注，请勿重复操作")
 		}
 		//toUser那边，粉丝列表维护起来
 		fanInrRes := dao.RedisClient.HSetNX(
 			context.Background(),
-			util.UserFollowersHashPrefix+toUserIdStr,
+			config.UserFollowersHashPrefix+toUserIdStr,
 			userIdStr,
 			userNameStr,
 		).Val()
 		if !fanInrRes {
 			return errors.New("添加粉丝列表失败！")
 		}
+		dao.RedisClient.Expire(context.Background(), config.UserFollowersHashPrefix+toUserIdStr, 6*30*24*time.Hour)
 	} else if actionType == 2 {
 		//取关 ：HDel方法删除的时候，如果删除的字段不存在，会返回0
 
 		//当前用户关注列表减少
 		unFollowRes := dao.RedisClient.HDel(
 			context.Background(),
-			util.UserFollowHashPrefix+userIdStr,
+			config.UserFollowHashPrefix+userIdStr,
 			toUserIdStr,
 		).Val()
 		if unFollowRes == 0 {
@@ -66,7 +69,7 @@ func FollowAction(userIdInt64 int64, toUserIdInt64 int64, actionType int) (err e
 		//目标用户粉丝列表删除对应
 		deleteFanRes := dao.RedisClient.HDel(
 			context.Background(),
-			util.UserFollowersHashPrefix+toUserIdStr,
+			config.UserFollowersHashPrefix+toUserIdStr,
 			userIdStr,
 		).Val()
 		if deleteFanRes == 0 {
@@ -88,7 +91,7 @@ func FollowList(userIdStr string) (userList []domain.User, err error) {
 
 	//查询用户关注的Hash表. 注意HGetAll返回的是map[string]string类型
 	userStringMap, err := dao.RedisClient.
-		HGetAll(context.Background(), util.UserFollowHashPrefix+userIdStr).
+		HGetAll(context.Background(), config.UserFollowHashPrefix+userIdStr).
 		Result()
 	if err != nil || userStringMap == nil {
 		return nil, errors.New("redis searching for userFollowList error")
@@ -101,15 +104,15 @@ func FollowList(userIdStr string) (userList []domain.User, err error) {
 			IsFollow:      true, //既然是当前用户下的关注列表，状态肯定要设置为关注
 			Id:            userIdInt64,
 			Name:          username,
-			FollowCount:   dao.RedisClient.HLen(context.Background(), util.UserFollowHashPrefix+userIdStr).Val(),
-			FollowerCount: dao.RedisClient.HLen(context.Background(), util.UserFollowHashPrefix+userIdStr).Val(),
+			FollowCount:   dao.RedisClient.HLen(context.Background(), config.UserFollowHashPrefix+userIdStr).Val(),
+			FollowerCount: dao.RedisClient.HLen(context.Background(), config.UserFollowHashPrefix+userIdStr).Val(),
 		}
 		userList = append(userList, user)
 	}
 	return userList, nil
 }
 func FollowerList(userIdStr string) (userList []domain.User, err error) {
-	userMap := dao.RedisClient.HGetAll(context.Background(), util.UserFollowersHashPrefix+userIdStr).Val()
+	userMap := dao.RedisClient.HGetAll(context.Background(), config.UserFollowersHashPrefix+userIdStr).Val()
 
 	for userId, userName := range userMap {
 		if err != nil || userMap == nil {
@@ -117,14 +120,14 @@ func FollowerList(userIdStr string) (userList []domain.User, err error) {
 		}
 
 		//查该用户是否关注了当前粉丝。这个结果需要返回前端显示：IsFollow
-		isFollowed := dao.RedisClient.HExists(context.Background(), util.UserFollowHashPrefix+userIdStr, userId).Val()
+		isFollowed := dao.RedisClient.HExists(context.Background(), config.UserFollowHashPrefix+userIdStr, userId).Val()
 		userIdInt64, _ := strconv.ParseInt(userId, 10, 64)
 		user := domain.User{
 			IsFollow:      isFollowed, //当前user的关注列表中有粉丝的id，说明互相关注。
 			Id:            userIdInt64,
 			Name:          userName,
-			FollowCount:   dao.RedisClient.HLen(context.Background(), util.UserFollowersHashPrefix+userIdStr).Val(),
-			FollowerCount: dao.RedisClient.HLen(context.Background(), util.UserFollowersHashPrefix+userIdStr).Val(),
+			FollowCount:   dao.RedisClient.HLen(context.Background(), config.UserFollowersHashPrefix+userIdStr).Val(),
+			FollowerCount: dao.RedisClient.HLen(context.Background(), config.UserFollowersHashPrefix+userIdStr).Val(),
 		}
 		userList = append(userList, user)
 	}

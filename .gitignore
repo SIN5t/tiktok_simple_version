@@ -23,7 +23,7 @@ go.work
 .idea
 
 # Config file
-config.toml
+config/config.toml
 
 # Redis
 dump.rdb

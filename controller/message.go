@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/goForward/tictok_simple_version/config"
 	"log"
 	"net/http"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 	dao "github.com/goForward/tictok_simple_version/dao"
 	"github.com/goForward/tictok_simple_version/domain"
 	"github.com/goForward/tictok_simple_version/service"
-	"github.com/goForward/tictok_simple_version/util"
 )
 
 func Chat(c *gin.Context) {
@@ -29,7 +29,7 @@ func Chat(c *gin.Context) {
 	//
 	//log.Println(msgTime < time.Now().UnixMilli())
 	queryTime := time.Now().UnixMilli()
-	time, _ := dao.RedisClient.Get(c, util.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10)).Result()
+	time, _ := dao.RedisClient.Get(c, config.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10)).Result()
 	if msgTime > queryTime {
 
 		msgTime, _ = strconv.ParseInt(time, 10, 64)
@@ -41,7 +41,7 @@ func Chat(c *gin.Context) {
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "获取聊天记录失败"})
 		return
 	}
-	dao.RedisClient.Set(c, util.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10), strconv.FormatInt(queryTime, 10), 0)
+	dao.RedisClient.Set(c, config.UserMessageTimePrefix+strconv.FormatInt(fromUserId, 10)+":"+strconv.FormatInt(toUserId, 10), strconv.FormatInt(queryTime, 10), 0)
 
 	c.JSON(http.StatusOK, domain.ChatResponse{
 		Response:    domain.Response{StatusCode: 0},

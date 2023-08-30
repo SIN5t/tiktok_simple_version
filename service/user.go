@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/goForward/tictok_simple_version/config"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/goForward/tictok_simple_version/dao"
 	"github.com/goForward/tictok_simple_version/domain"
-	"github.com/goForward/tictok_simple_version/util"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -64,7 +64,7 @@ func Register(username, password string) (id int64, tokenString string, err erro
 	dao.DB.Model(&domain.User{}).Create(&user)
 
 	// 生成jwt
-	tokenString, err = GenerateJWT(user.Id, util.JWTSecret())
+	tokenString, err = GenerateJWT(user.Id, config.JWTSecret())
 	if err != nil {
 		return 0, "", errors.New("生成jwt错误")
 	}
@@ -99,14 +99,14 @@ func Login(username, password string) (id int64, token string, err error) {
 	}
 
 	// 生成jwt
-	tokenString, err := GenerateJWT(user.Id, util.JWTSecret())
+	tokenString, err := GenerateJWT(user.Id, config.JWTSecret())
 	if err != nil {
 		err = errors.New("生成jwt错误")
 		return
 	}
 
 	// 缓存jwt
-	err = dao.RedisClient.Set(context.Background(), util.Key(util.TokenRefreshPrefix, strconv.FormatInt(user.Id, 10)), tokenString, time.Hour*24).Err()
+	err = dao.RedisClient.Set(context.Background(), config.Key(config.TokenRefreshPrefix, strconv.FormatInt(user.Id, 10)), tokenString, time.Hour*24).Err()
 	if err != nil {
 		return
 	}
@@ -126,8 +126,8 @@ func User(userId int64) (user domain.User, err error) {
 	if err != nil {
 		return domain.User{}, errors.New("用户不存在")
 	}
-	userFollowNum := dao.RedisClient.HLen(context.Background(), util.Key(util.UserFollowHashPrefix, userId)).Val()
-	userFollowerNum := dao.RedisClient.HLen(context.Background(), util.Key(util.UserFollowersHashPrefix, userId)).Val()
+	userFollowNum := dao.RedisClient.HLen(context.Background(), config.Key(config.UserFollowHashPrefix, userId)).Val()
+	userFollowerNum := dao.RedisClient.HLen(context.Background(), config.Key(config.UserFollowersHashPrefix, userId)).Val()
 	user.FollowCount = userFollowNum
 	user.FollowerCount = userFollowerNum
 	return user, nil
@@ -168,7 +168,7 @@ func VerifyJWT(tokenString, secret string) (userId int64, err error) {
 	// 获取声明
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		sub := int64(claims["sub"].(float64))
-		cachedTokenString, err := dao.RedisClient.Get(context.Background(), util.Key(util.TokenRefreshPrefix, sub)).Result()
+		cachedTokenString, err := dao.RedisClient.Get(context.Background(), config.Key(config.TokenRefreshPrefix, sub)).Result()
 		if err != nil {
 			return 0, err
 		}
@@ -182,7 +182,7 @@ func VerifyJWT(tokenString, secret string) (userId int64, err error) {
 }
 
 func RefreshJWT(userId int64) (err error) {
-	return dao.RedisClient.Expire(context.Background(), util.Key(util.TokenRefreshPrefix, userId), time.Hour*24).Err()
+	return dao.RedisClient.Expire(context.Background(), config.Key(config.TokenRefreshPrefix, userId), time.Hour*24).Err()
 }
 
 // 随机盐长度固定为4

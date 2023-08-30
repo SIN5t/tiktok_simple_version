@@ -1,16 +1,16 @@
 package main
 
 import (
+	"github.com/goForward/tictok_simple_version/config"
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/goForward/tictok_simple_version/dao"
 	"github.com/goForward/tictok_simple_version/router"
-	"github.com/goForward/tictok_simple_version/util"
 )
 
 func main() {
-	util.InitConfig()
+	config.InitConfig()
 	log.Println("配置读取成功")
 
 	dao.InitMinio()

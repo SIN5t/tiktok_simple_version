@@ -2,11 +2,11 @@ package service
 
 import (
 	"errors"
+	"github.com/goForward/tictok_simple_version/config"
 	"log"
 
 	"github.com/goForward/tictok_simple_version/dao"
 	"github.com/goForward/tictok_simple_version/domain"
-	"github.com/goForward/tictok_simple_version/util"
 )
 
 // InsertVideos 向数据库插入视频信息
@@ -36,8 +36,8 @@ func InsertVideos(videoName string, title string, coverName string, userId int64
 
 // QueryAuthorPublishedVideo 查询用户发布的视频，以展示在个人列表中
 func QueryAuthorPublishedVideo(authorIdInt64 int64) (videoList []domain.Video, err error) {
-	url := dao.MinioClient.EndpointURL().String() + "/" + util.VideoBucketName + "/"
-	picurl := dao.MinioClient.EndpointURL().String() + "/" + util.PictureBucketName + "/"
+	url := dao.MinioClient.EndpointURL().String() + "/" + config.VideoBucketName + "/"
+	picurl := dao.MinioClient.EndpointURL().String() + "/" + config.PictureBucketName + "/"
 	err = dao.DB.Model(&domain.Video{}).
 		Where("author_id = ?", authorIdInt64).
 		Order("creat_time desc"). //该字段加了索引

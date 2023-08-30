@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/goForward/tictok_simple_version/config"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/goForward/tictok_simple_version/domain"
 	"github.com/goForward/tictok_simple_version/service"
-	"github.com/goForward/tictok_simple_version/util"
 )
 
 func authJWT(c *gin.Context, force bool) {
@@ -18,7 +18,7 @@ func authJWT(c *gin.Context, force bool) {
 	}
 
 	// 鉴权
-	userId, err := service.VerifyJWT(tokenString, util.JWTSecret())
+	userId, err := service.VerifyJWT(tokenString, config.JWTSecret())
 	fmt.Println("userId", userId)
 	if err != nil { // 未登录
 		if force { // 强制

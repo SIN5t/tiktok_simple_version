@@ -2,7 +2,7 @@ package dao
 
 import (
 	"context"
-	"github.com/goForward/tictok_simple_version/util"
+	"github.com/goForward/tictok_simple_version/config"
 	"log"
 
 	"github.com/minio/minio-go/v7"
@@ -20,16 +20,16 @@ var (
 )
 
 func InitMinio() {
-	MinioClient, err = minio.New(util.GetMinioEndpoint(), &minio.Options{
-		Creds:  credentials.NewStaticV4(util.GetMinioAccessKeyID(), util.GetMinioSecretAccessKey(), ""),
+	MinioClient, err = minio.New(config.GetMinioEndpoint(), &minio.Options{
+		Creds:  credentials.NewStaticV4(config.GetMinioAccessKeyID(), config.GetMinioSecretAccessKey(), ""),
 		Secure: useSSL})
 	if err != nil {
 		log.Fatalln("minio连接错误: ", err)
 	} else {
 		log.Printf("%#v\n", MinioClient)
 		log.Println(MinioClient.EndpointURL())
-		createBucket(util.VideoBucketName)
-		createBucket(util.PictureBucketName)
+		createBucket(config.VideoBucketName)
+		createBucket(config.PictureBucketName)
 	}
 
 }
