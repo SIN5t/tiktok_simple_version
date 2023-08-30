@@ -5,93 +5,27 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/goForward/tictok_simple_version/domain"
 	"github.com/goForward/tictok_simple_version/util"
-	"github.com/goccy/go-json"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 )
 
-//数据库与redis一致性同步处理
+//多协程异步处理 数据库与redis一致性
 
-func ScheduleSyncFavoriteToMysql() error {
+func ScheduleSyncFavVideoList() error {
 	scheduler := gocron.NewScheduler(time.Local) ///定时任务
 	_, err := scheduler.Every(10).
 		Tag("favoriteRedis").
 		Seconds().
-		Do(SyncFavoriteToMysql)
+		Do(SyncFavVideoList)
 	if err != nil {
 		return err
 	}
 	scheduler.StartAsync() //异步执行
 	return nil
 }
-
-func SyncFavoriteToMysql() (err error) {
-	//1. 视频角度： 被点赞个数，先于是否使用redis
-
-	//2.  用户角度： 该用户点赞的视频id、该用户点赞的总数（前端没做）
-	// 2.1 遍历所有相关的redis key，对每一个redis中存储的用户 的点赞视频进行同步数据库
-	matchPattern := util.VideoFavoriteKeyPrefix + "*"
-	cursor := uint64(0)
-	for {
-		keys, newCursor, err := RedisClient.Scan(context.Background(), cursor, matchPattern, 500).Result()
-		if err != nil {
-			log.Printf("Failed to scan keys: %s\n", err.Error())
-			return err
-		}
-		// 数据库更新当前id的喜欢列表
-		for _, key := range keys {
-			//先获取这个key对应的值
-			videoIdList, err := RedisClient.SMembers(context.Background(), key).Result()
-
-			if err != nil {
-				log.Printf("Failed to get members: %s\n", err.Error())
-				return err
-			}
-			//[]string复杂类型转json
-			videoIdsJson, err := json.Marshal(videoIdList)
-			if err != nil {
-				return err
-			}
-
-			//这个key对应的id
-			userId, err := strconv.ParseInt(strings.Split(key, ":")[1], 10, 64)
-			if err != nil {
-				return err
-			}
-			//更新数据库
-			result := DB.FirstOrCreate(&domain.UserRedisSync{}, domain.UserRedisSync{UserId: userId})
-			if result.Error != nil {
-				return result.Error
-			}
-			if result.RowsAffected > 0 {
-				//存在记录，更新值
-				if err = DB.
-					Model(&domain.UserRedisSync{}).
-					Where("Id = ?", userId).
-					UpdateColumn("FavoriteVideoIds", videoIdsJson).
-					Error; err != nil {
-					return err
-				}
-			}
-
-		}
-		//当前这一轮redis遍历完成，下一轮
-		cursor = newCursor
-		if cursor == 0 {
-			//迭代结束
-			break
-		}
-	}
-	/*err = RedisClient.Close()
-	if err != nil {
-		return err
-	}*/
-	return nil
-}
-
-func ScheduleSyncRelationToMysql() error {
+func ScheduleSyncRelation() error {
 	scheduler := gocron.NewScheduler(time.Local)
 	_, err := scheduler.Every(10).
 		Tag("relationRedis").
@@ -103,7 +37,173 @@ func ScheduleSyncRelationToMysql() error {
 	scheduler.StartAsync()
 	return nil
 }
+func ScheduleSyncVideoBeLikedNum() error {
+	scheduler := gocron.NewScheduler(time.Local)
+	_, err := scheduler.Every(10).
+		Tag("videoLikedNumRedis").
+		Second().
+		Do(SyncVideoBeLikedNum)
+	if err != nil {
+		return err
+	}
+	scheduler.StartAsync()
+	return nil
+}
+func ScheduleSyncAuthorBeLikedNum() error {
+	scheduler := gocron.NewScheduler(time.Local)
+	_, err := scheduler.Every(10).
+		Tag("authorLikedNumRedis").
+		Second().
+		Do(SyncAuthorLikedNum)
+	if err != nil {
+		return err
+	}
+	scheduler.StartAsync()
+	return nil
+}
 
+// **********************具体逻辑实现********************************//
+
+// SyncFavVideoList 视频作者获赞数同步、点赞视频列表同步
+func SyncFavVideoList() (err error) {
+	//点赞视频列表同步
+	matchPattern := util.VideoFavoriteKeyPrefix + "*"
+	cursor := uint64(0)
+	for {
+		keys, newCursor, err := RedisClient.Scan(context.Background(), cursor, matchPattern, 500).Result()
+		if err != nil {
+			log.Printf("Failed to scan keys: %s\n", err.Error())
+			return err
+		}
+
+		// 数据库更新当前id的喜欢列表
+		for _, key := range keys {
+			//先获取这个key对应的值
+			videoIdList, err := RedisClient.SMembers(context.Background(), key).Result()
+			if err != nil {
+				log.Printf("Failed to get members: %s\n", err.Error())
+				return err
+			}
+
+			//当前key对应的id
+			userId, err := strconv.ParseInt(strings.Split(key, ":")[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			//创建或更新数据
+			var videoIdMysql string
+			for _, videoId := range videoIdList {
+				videoIdMysql += videoId + ","
+			}
+			//不存在，就创建
+			userRedisSync := domain.UserRedisSync{}
+			DB.Where(domain.UserRedisSync{UserId: userId}).FirstOrCreate(&userRedisSync)
+			//赋值
+			userRedisSync.FavoriteVideoId = videoIdMysql
+			if err = DB.Model(&domain.UserRedisSync{}).
+				Where("user_id = ?", userId).
+				Updates(&userRedisSync).
+				Error; err != nil {
+				return err
+			}
+
+		}
+		//当前这一轮redis遍历完成，下一轮
+		cursor = newCursor
+		if cursor == 0 {
+			//迭代结束
+			break
+		}
+	}
+	return nil
+}
+
+// SyncVideoBeLikedNum 视频获赞数同步
+func SyncVideoBeLikedNum() (err error) {
+	//点赞视频列表同步
+	matchPattern := util.VideoBeLikedNum + "*"
+	cursor := uint64(0)
+	for {
+		keys, newCursor, err := RedisClient.Scan(context.Background(), cursor, matchPattern, 500).Result()
+		if err != nil {
+			log.Printf("Failed to scan keys: %s\n", err.Error())
+			return err
+		}
+		// 数据库更新当前视频的点赞个数
+		for _, key := range keys {
+			//先获取这个key对应的值
+			likedNum, err := RedisClient.Get(context.Background(), key).Result()
+			likedNumInt64, _ := strconv.ParseInt(likedNum, 10, 64)
+			if err != nil {
+				log.Printf("Failed to get members: %s\n", err.Error())
+				return err
+			}
+
+			//当前key对应的id
+			videoId, err := strconv.ParseInt(strings.Split(key, ":")[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			//更新数据
+			if err = DB.Model(&domain.Video{}).Where("id", videoId).Update("FavoriteCount", likedNumInt64).Error; err != nil {
+				return err
+			}
+		}
+		//当前这一轮redis遍历完成，下一轮
+		cursor = newCursor
+		if cursor == 0 {
+			//迭代结束
+			break
+		}
+	}
+	return nil
+}
+
+// SyncAuthorLikedNum 作者获赞数同步
+func SyncAuthorLikedNum() (err error) {
+	//点赞视频列表同步
+	matchPattern := util.AuthorBeLikedNum + "*"
+	cursor := uint64(0)
+	for {
+		keys, newCursor, err := RedisClient.Scan(context.Background(), cursor, matchPattern, 500).Result()
+		if err != nil {
+			log.Printf("Failed to scan keys: %s\n", err.Error())
+			return err
+		}
+		// 数据库更新当前视频的点赞个数
+		for _, key := range keys {
+			//先获取这个key对应的值
+			likedNum, err := RedisClient.Get(context.Background(), key).Result()
+			likedNumInt64, _ := strconv.ParseInt(likedNum, 10, 64)
+			if err != nil {
+				log.Printf("Failed to get members: %s\n", err.Error())
+				return err
+			}
+
+			//当前key对应的id
+			userId, err := strconv.ParseInt(strings.Split(key, ":")[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			//更新数据
+			if err = DB.Model(&domain.User{}).Where("id", userId).Update("total_favorited", likedNumInt64).Error; err != nil {
+				return err
+			}
+		}
+		//当前这一轮redis遍历完成，下一轮
+		cursor = newCursor
+		if cursor == 0 {
+			//迭代结束
+			break
+		}
+	}
+	return nil
+}
+
+// SyncRelationToMysql 用户关系同步
 func SyncRelationToMysql() (err error) {
 	//1. 同步用户关注列表到mysql中
 	matchPattern := util.UserFollowHashPrefix + "*"
@@ -137,7 +237,6 @@ func SyncRelationToMysql() (err error) {
 			break
 		}
 	}
-
 	/*err = RedisClient.Close()
 	if err != nil {
 		return err
@@ -146,6 +245,7 @@ func SyncRelationToMysql() (err error) {
 
 }
 
+// relationMultiplex 用户关注、被关注逻辑复用
 func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, count int64, column string) (error, uint64) {
 	keys, newCursor, err := RedisClient.Scan(ctx, cursor, matchPattern, count).Result()
 	if err != nil {
@@ -155,45 +255,36 @@ func relationMultiplex(ctx context.Context, cursor uint64, matchPattern string, 
 	for _, key := range keys {
 		//redis中取出每个key对应的value中的字段，不取值
 		toUserIdList, err := RedisClient.HKeys(context.Background(), key).Result()
-
 		if err != nil {
 			return err, 0
 		}
 
-		//[]string复杂类型转json存储到mysql中
-		toUserIdJson, err := json.Marshal(toUserIdList)
-		if err != nil {
-			return err, 0
-		}
 		//当前userId
 		userId, err := strconv.ParseInt(strings.Split(key, ":")[1], 10, 64)
-
 		if err != nil {
 			return err, 0
 		}
-		//更新到数据库
-		if err = DB.
-			Model(&domain.User{}).
-			Where("Id = ?", userId).
-			//Update("FollowIds", toUserIdList).
-			Update(column, toUserIdJson).
+
+		var toUserIdMysql string
+		for _, toUserId := range toUserIdList {
+			toUserIdMysql += toUserId + ","
+		}
+		//构造数据结构
+		var userRedisSync domain.UserRedisSync
+		//不存在，就创建
+		DB.Where(domain.UserRedisSync{UserId: userId}).FirstOrCreate(&userRedisSync)
+		//赋值
+		if column == "FollowerIds" {
+			userRedisSync.FollowerId = toUserIdMysql
+		} else {
+			userRedisSync.FollowId = toUserIdMysql
+		}
+		if err = DB.Model(&domain.UserRedisSync{}).
+			Where("user_id = ?", userId).
+			Updates(&userRedisSync).
 			Error; err != nil {
 			return err, 0
 		}
-
 	}
 	return nil, newCursor
-
 }
-
-/*func strToInt64Slice(userIdStr []string) ([]int64, error) {
-	userIdInt64 := make([]int64, 0)
-	for _, idStr := range userIdStr {
-		idInt64, err2 := strconv.ParseInt(idStr, 10, 64)
-		if err2 != nil {
-			return nil, err2
-		}
-		userIdInt64 = append(userIdInt64, idInt64)
-	}
-	return userIdInt64, nil
-}*/

@@ -9,6 +9,7 @@ import (
 
 const (
 	AuthorBeLikedNum = "AUTHOR_BE_LIKED_NUM_KEY:"
+	VideoBeLikedNum  = "VIDEO_BE_LIKED_NUM_KEY:"
 
 	UserFollowHashPrefix    = "USER_FOLLOWS_KEY:"   // 当前用户的关注hash列表，field是关注用户的id，value是对应的名字
 	UserFollowersHashPrefix = "USER_FOLLOWERS_KEY:" // 当前用户的粉丝列表。field是粉丝id,value是粉丝名字。

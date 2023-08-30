@@ -11,7 +11,9 @@ import (
 
 // InsertVideos 向数据库插入视频信息
 func InsertVideos(videoName string, title string, coverName string, userId int64, coverGenerateStatus bool) error {
+	snowFakeId := dao.VideoNode.Generate().Int64()
 	video := domain.Video{
+		Id:       snowFakeId,
 		AuthorId: userId,
 		Title:    title,
 		PlayUrl:  videoName,

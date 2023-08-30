@@ -74,12 +74,19 @@ func InitDB() {
 	log.Println("successfully connected to Redis server!")
 
 	//开启定时同步到数据库
-	if err = ScheduleSyncFavoriteToMysql(); err != nil {
+	if err = ScheduleSyncFavVideoList(); err != nil {
 		log.Println(err.Error())
 	}
-	if err = ScheduleSyncRelationToMysql(); err != nil {
+	if err = ScheduleSyncRelation(); err != nil {
 		log.Println(err.Error())
 	}
+	if err = ScheduleSyncVideoBeLikedNum(); err != nil {
+		log.Println(err.Error())
+	}
+	if err = ScheduleSyncAuthorBeLikedNum(); err != nil {
+		log.Println(err.Error())
+	}
+
 	log.Println("MySQL synchronization is enabled.")
 
 }

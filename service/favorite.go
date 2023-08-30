@@ -3,31 +3,28 @@ package service
 import (
 	"context"
 	"errors"
-	"log"
 	"strconv"
 
 	"github.com/goForward/tictok_simple_version/dao"
 	"github.com/goForward/tictok_simple_version/domain"
 	"github.com/goForward/tictok_simple_version/util"
-	"gorm.io/gorm"
 )
 
-// Favorite
-// 　业务需求：注意看官方user中，有total_favorite(当前用户获赞数量）
-// 意味着，当前用户点赞的时候：视频作者获赞数量++、自己点赞数量++　TODO　favorite_count（该用户点赞数量可以用redis SCard(ctx, "myset").Result()统计)
-// 在video中，有FavoriteCount、IsFavorite（由redis操作，每个用户维护自己点赞的视频列表在redis中）
+// Favorite 点赞、取消接口
 func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err error) {
-	///第一步一定要查userIdInt64是否合法，videoId也要查
-
 	// TODO 先通过布隆过滤器过滤无效的用户id
 	/*	if !userIdFilter.TestString(strconv.FormatInt(userIdInt64, 10)) {
 		return errors.New("当前操作用户不存在")
 	}*/
 
-	//如果是点赞
+	// 找到作者id
+	var authorId int64
+	dao.DB.Model(&domain.Video{}).Where("Id = ?", videoIdInt64).Select("author_id").Find(&authorId)
+
+	//点赞
 	if actionType == 1 {
 		//1. 在redis维护的用户点赞列表中加上该视频id
-		// 先判断该用户点赞了没有
+		// 判断是否点赞
 		isFavorite := dao.RedisClient.
 			SIsMember(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), videoIdInt64).
 			Val()
@@ -37,38 +34,43 @@ func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err erro
 				SAdd(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), videoIdInt64)
 		}
 
-		//2.total_favorite(当前用户获赞数量）++  使用redis做，TODO 数据库中可以不存这个字段
-		//Incr 方法用于递增 Redis 中的整数值键。如果键不存在，它会将键的值初始化为 0，然后再执行增加操作
-		dao.RedisClient.Incr(context.Background(), util.AuthorBeLikedNum+strconv.FormatInt(userIdInt64, 10))
+		//2.total_favorite(点赞视频对应的作者获赞数量增加），dao处有定时同步到mysql的逻辑
 
-		//3.video的favoriteCount
-		//使用事务确保数据库更新一致性：在更新数据的过程中，数据库会自动对被修改的数据进行加锁，以防止其他并发操作同时修改同一行数据。
+		//如果键不存在，它会将键的值初始化为 0，然后再执行增加操作
+		dao.RedisClient.Incr(context.Background(), util.AuthorBeLikedNum+strconv.FormatInt(authorId, 10))
 
-		//开启事务
+		//3.video的favoriteCount，dao中有逻辑同步到mysql表中
+		dao.RedisClient.Incr(context.Background(), util.VideoBeLikedNum+strconv.FormatInt(videoIdInt64, 10))
+
+		/*//开启事务
 		tx := dao.DB.Begin()
 		if err := tx.Error; err != nil {
-			log.Println("视频点赞：开启事务失败")
-			log.Println(err)
-			return errors.New("事务开启失败")
+			return err
 		}
-		//业务逻辑
-		result := dao.DB.Model(&domain.Video{}).
+		//视频获赞+1
+		if result := tx.Model(&domain.Video{}).
 			Where("id = ?", videoIdInt64).
-			UpdateColumn("favorite_count", gorm.Expr("favorite_count + ?", 1))
-
-		if result.Error != nil {
-			log.Println("数据库增加点赞数出现错误！")
-			log.Println(result.Error)
+			UpdateColumn("favorite_count", gorm.Expr("favorite_count + ?", 1)).
+			Error; result != nil {
+			tx.Rollback()
+			return err
 		}
-		if result.RowsAffected == 0 {
-			log.Println("video not found")
+		//视频作者获赞数+1
+		//	通过视频id找到视频对应的作者
+		tx.Model(&domain.Video{}).Where("Id = ?", videoIdInt64).Select("author_id").Find(&authorId)
+		if err = tx.Model(&domain.User{}).
+			Where("AuthorId = ?", authorId).
+			UpdateColumn("TotalFavorited", gorm.Expr("total_favorited + ?", 1)).
+			Error; err != nil {
+			tx.Rollback()
+			return err
 		}
 
 		//提交事务
 		if err := tx.Commit().Error; err != nil {
-			log.Println("视频点赞：事务提交失败！")
-			log.Println(err)
-		}
+			tx.Rollback()
+			return err
+		}*/
 
 	} else if actionType == 2 { //取消点赞
 		//1. 在redis维护的用户点赞列表中加上该视频id
@@ -78,17 +80,16 @@ func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err erro
 		if !isFavVideo { //本来就没点赞
 			return errors.New("用户未曾点赞，无法取消点赞")
 		}
-		//点赞了现在取消
+		//取消点赞
 		dao.RedisClient.SRem(context.Background(), util.VideoFavoriteKeyPrefix+strconv.FormatInt(userIdInt64, 10), videoIdInt64)
 
-		//2.total_favorite(当前用户获赞数量）++  使用redis做，TODO 数据库中可以不存这个字段
-		//Incr 方法用于递增 Redis 中的整数值键。如果键不存在，它会将键的值初始化为 0，然后再执行增加操作
-		dao.RedisClient.Decr(context.Background(), util.AuthorBeLikedNum+strconv.FormatInt(userIdInt64, 10))
+		//2.total_favorite(当前视频作者获赞数量）
+		dao.RedisClient.Decr(context.Background(), util.AuthorBeLikedNum+strconv.FormatInt(authorId, 10))
 
 		//3.video的favoriteCount
-		//使用事务确保数据库更新一致性：在更新数据的过程中，数据库会自动对被修改的数据进行加锁，以防止其他并发操作同时修改同一行数据。
+		dao.RedisClient.Decr(context.Background(), util.VideoBeLikedNum+strconv.FormatInt(videoIdInt64, 10))
 
-		//开启事务
+		/*//开启事务
 		tx := dao.DB.Begin()
 		if err := tx.Error; err != nil {
 			log.Println("视频点赞：开启事务失败")
@@ -112,7 +113,7 @@ func Favorite(videoIdInt64 int64, userIdInt64 int64, actionType int32) (err erro
 		if err := tx.Commit().Error; err != nil {
 			log.Println("视频点赞：事务提交失败！")
 			log.Println(err)
-		}
+		}*/
 	}
 	return nil
 }

@@ -57,6 +57,8 @@ func Register(username, password string) (id int64, tokenString string, err erro
 		return 0, "", fmt.Errorf("bcrypt加密错误: %w", err)
 	}
 	user.Pwd = string(pwd)
+	snowFakeId := dao.UserNode.Generate().Int64()
+	user.Id = snowFakeId
 
 	// 创建用户
 	dao.DB.Model(&domain.User{}).Create(&user)
@@ -68,7 +70,7 @@ func Register(username, password string) (id int64, tokenString string, err erro
 	}
 
 	// 缓存jwt TODO 是否不再需要
-	dao.RedisClient.Set(context.Background(), tokenString, user.Id, 0)
+	//dao.RedisClient.Set(context.Background(), tokenString, user.Id, 0)
 
 	return user.Id, tokenString, nil
 }

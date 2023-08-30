@@ -5,7 +5,7 @@ import "time"
 type Video struct {
 	IsFavorite    bool      `json:"is_favorite" gorm:"-"`
 	Id            int64     `json:"id" gorm:"primaryKey"`
-	AuthorId      int64     `json:"-"`
+	AuthorId      int64     `json:"author_id"`
 	FavoriteCount int64     `json:"favorite_count"`
 	CommentCount  int64     `json:"comment_count"`
 	Title         string    `json:"title" gorm:"type:varchar(100)"`
