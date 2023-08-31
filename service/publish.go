@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/goForward/tictok_simple_version/config"
+	"gorm.io/gorm"
 	"log"
 
 	"github.com/goForward/tictok_simple_version/dao"
@@ -24,13 +25,25 @@ func InsertVideos(videoName string, title string, coverName string, userId int64
 	if !coverGenerateStatus {
 		video.CoverUrl = ""
 	}
+	tx := dao.DB.Begin()
 	//插入数据库
-	if err := dao.DB.Create(&video).Error; err != nil {
+	if err := tx.Create(&video).Error; err != nil {
 		log.Print("向video数据库中插入数据失败！")
-		log.Println(err)
+		tx.Rollback()
 		return err
 	}
-	//没出错
+	//用户信息那边发布视频数量+1
+	if err := tx.Model(&domain.User{}).
+		Where("id = ?", userId).
+		UpdateColumn("work_count", gorm.Expr("work_count + ?", 1)).
+		Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Error; err != nil {
+		tx.Rollback()
+		return err
+	}
 	return nil
 }
 
@@ -39,6 +52,7 @@ func QueryAuthorPublishedVideo(authorIdInt64 int64) (videoList []domain.Video, e
 	url := dao.MinioClient.EndpointURL().String() + "/" + config.VideoBucketName + "/"
 	picurl := dao.MinioClient.EndpointURL().String() + "/" + config.PictureBucketName + "/"
 	err = dao.DB.Model(&domain.Video{}).
+		Select("id,favorite_count,cover_url,play_url").
 		Where("author_id = ?", authorIdInt64).
 		Order("creat_time desc"). //该字段加了索引
 		Find(&videoList).Error
