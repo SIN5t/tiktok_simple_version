@@ -64,7 +64,7 @@ func ScheduleSyncAuthorBeLikedNum() error {
 
 // **********************具体逻辑实现********************************//
 
-// SyncFavVideoList 视频作者获赞数同步、点赞视频列表同步
+// SyncFavVideoList 点赞视频列表同步、用户点赞个数同步
 func SyncFavVideoList() (err error) {
 	//点赞视频列表同步
 	matchPattern := config.VideoFavoriteKeyPrefix + "*"
@@ -90,6 +90,8 @@ func SyncFavVideoList() (err error) {
 			if err != nil {
 				return err
 			}
+			// 点赞视频的个数
+			userFavoriteCount := RedisClient.SCard(context.Background(), config.Key(config.VideoFavoriteKeyPrefix, userId)).Val()
 
 			//创建或更新数据
 			var videoIdMysql string
@@ -108,6 +110,8 @@ func SyncFavVideoList() (err error) {
 				return err
 			}
 
+			//用户点赞总数跟新
+			DB.Model(&domain.User{}).Where("id = ?", userId).Update("favorite_count", userFavoriteCount)
 		}
 		//当前这一轮redis遍历完成，下一轮
 		cursor = newCursor

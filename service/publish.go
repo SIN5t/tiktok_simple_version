@@ -40,10 +40,11 @@ func InsertVideos(videoName string, title string, coverName string, userId int64
 		tx.Rollback()
 		return err
 	}
-	if err := tx.Error; err != nil {
+	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return err
 	}
+
 	return nil
 }
 

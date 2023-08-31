@@ -122,14 +122,20 @@ func User(userId int64) (user domain.User, err error) {
 	//Select("Id,Salt,Name,Pwd").
 	Where("id = ?", userId).
 	Find(&user).Error*/
-	err = dao.DB.Model(&domain.User{}).Where("id = ?", userId).Find(&user).Error
+	err = dao.DB.
+		Model(&domain.User{}).
+		Select("id,salt,name,pwd,avatar,total_favorited,work_count").
+		Where("id = ?", userId).
+		Find(&user).Error
 	if err != nil {
 		return domain.User{}, errors.New("用户不存在")
 	}
 	userFollowNum := dao.RedisClient.HLen(context.Background(), config.Key(config.UserFollowHashPrefix, userId)).Val()
 	userFollowerNum := dao.RedisClient.HLen(context.Background(), config.Key(config.UserFollowersHashPrefix, userId)).Val()
+	userFavoriteCount := dao.RedisClient.SCard(context.Background(), config.Key(config.VideoFavoriteKeyPrefix, userId)).Val()
 	user.FollowCount = userFollowNum
 	user.FollowerCount = userFollowerNum
+	user.FavoriteCount = userFavoriteCount
 	return user, nil
 }
 
