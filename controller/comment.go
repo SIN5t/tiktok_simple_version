@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -12,6 +13,7 @@ import (
 func CommentAction(c *gin.Context) {
 	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "非法视频id"})
 		return
 	}
@@ -23,6 +25,7 @@ func CommentAction(c *gin.Context) {
 		commentText := c.Query("comment_text")
 		comment, err := service.AddComment(videoId, userId, commentText)
 		if err != nil {
+			log.Println(err.Error())
 			c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "创建评论失败"})
 		} else {
 			c.JSON(http.StatusOK, domain.CommentResponse{
@@ -33,17 +36,20 @@ func CommentAction(c *gin.Context) {
 	} else if actionType == "2" {
 		commentId, err := strconv.ParseInt(c.Query("comment_id"), 10, 64)
 		if err != nil {
+			log.Println(err.Error())
 			c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "非法评论id"})
 			return
 		}
 
 		err = service.DeleteComment(commentId)
 		if err != nil {
+			log.Println(err.Error())
 			c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "删除评论失败"})
 		} else {
 			c.JSON(http.StatusOK, domain.Response{StatusCode: 0})
 		}
 	} else {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "无效操作"})
 	}
 }
@@ -51,12 +57,14 @@ func CommentAction(c *gin.Context) {
 func CommentList(c *gin.Context) {
 	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "非法视频id"})
 		return
 	}
 
 	commentList, err := service.CommentList(videoId)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "非法视频id"})
 	} else {
 		c.JSON(http.StatusOK, domain.CommentListResponse{

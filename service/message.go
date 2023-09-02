@@ -42,15 +42,16 @@ func ChatList(fromUserId int64, toUserId int64, msgTime int64) (messageList []do
 		return messageList, err
 	}
 	if msgTime == 0 {
+		//加载历史消息
 		if err := dao.DB.Where("  ((`from_user_id` = ? AND `to_user_id` = ?)  OR (`from_user_id` = ? AND `to_user_id` = ?))", fromUserId, toUserId, toUserId, fromUserId).Find(&messageList).Error; err != nil {
-			log.Print("从message数据库中查询数据失败！")
-			log.Println(err)
+			//log.Print("从message数据库中查询数据失败！")
+			//log.Println(err)
 			return messageList, err
 		}
 	} else {
 		if err := dao.DB.Where("create_time > ? AND `from_user_id` = ? AND `to_user_id` = ?", msgTime, toUserId, fromUserId).Find(&messageList).Error; err != nil {
-			log.Print("从message数据库中查询数据失败！")
-			log.Println(err)
+			//log.Print("从message数据库中查询数据失败！")
+			//log.Println(err)
 			return messageList, err
 		}
 	}

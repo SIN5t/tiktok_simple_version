@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -14,6 +15,7 @@ func Register(c *gin.Context) {
 	password := c.Query("password")
 	id, tokenString, err := service.Register(username, password)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: err.Error()})
 	} else {
 		c.JSON(http.StatusOK, domain.UserLoginResponse{
@@ -30,6 +32,7 @@ func Login(c *gin.Context) {
 
 	id, tokenString, err := service.Login(username, password)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: err.Error()})
 	} else {
 		c.JSON(http.StatusOK, domain.UserLoginResponse{
@@ -48,6 +51,7 @@ func User(c *gin.Context) {
 	}
 	user, err := service.User(id64)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.UserResponse{
 			Response: domain.Response{StatusCode: 1, StatusMsg: err.Error()},
 		})

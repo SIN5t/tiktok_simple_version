@@ -44,7 +44,6 @@ func InsertVideos(videoName string, title string, coverName string, userId int64
 		tx.Rollback()
 		return err
 	}
-
 	return nil
 }
 

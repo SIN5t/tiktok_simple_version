@@ -21,6 +21,7 @@ func Chat(c *gin.Context) {
 
 	toUserId, err1 := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
 	if err1 != nil || err2 != nil {
+		//log.Println(err1.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "toUserId解析失败"})
 		return
 	}
@@ -38,6 +39,7 @@ func Chat(c *gin.Context) {
 	list, err := service.ChatList(fromUserId, toUserId, msgTime)
 
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "获取聊天记录失败"})
 		return
 	}
@@ -57,6 +59,7 @@ func ChatAction(c *gin.Context) {
 	//actionType := c.PostForm("action_type")
 	actionType, err2 := strconv.ParseInt(c.Query("action_type"), 10, 64)
 	if err1 != nil || err2 != nil {
+		//log.Println(err1.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "userId或actiontype解析失败"})
 		return
 	}
@@ -66,6 +69,7 @@ func ChatAction(c *gin.Context) {
 	}
 	message, err := service.AddMessage(fromUserId, toUserId, content)
 	if err != nil {
+		log.Println(err.Error())
 		log.Println(message, err)
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: message + err.Error()})
 		return

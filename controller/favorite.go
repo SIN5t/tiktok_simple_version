@@ -20,6 +20,7 @@ func FavoriteAction(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "获取视频id失败！"})
 		log.Println("出现无法解析成64位整数的视频id")
+		log.Println(err.Error())
 		return
 	}
 
@@ -32,6 +33,7 @@ func FavoriteAction(c *gin.Context) {
 
 	err = service.Favorite(videoIdInt64, userIdInt64, int32(actionType))
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: err.Error()})
 		return
 	}
@@ -44,6 +46,7 @@ func FavoriteList(c *gin.Context) {
 	userIdStr := c.Query("user_id")
 	userIdInt64, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.VideoListResponse{
 			Response:  domain.Response{StatusCode: 1, StatusMsg: err.Error()},
 			VideoList: nil,
@@ -51,6 +54,7 @@ func FavoriteList(c *gin.Context) {
 	}
 	videoList, err := service.FavoriteList(userIdInt64)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.VideoListResponse{
 			Response:  domain.Response{StatusCode: 1, StatusMsg: "视频错误"},
 			VideoList: nil,

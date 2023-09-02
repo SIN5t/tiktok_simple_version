@@ -33,6 +33,7 @@ func Publish(c *gin.Context) {
 	// 获取用户上传的视频
 	data, err := c.FormFile("data")
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
@@ -48,6 +49,7 @@ func Publish(c *gin.Context) {
 	//saveFile := filepath.Join("./static-server/video/", filename)
 	file, err := data.Open()
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
@@ -57,6 +59,7 @@ func Publish(c *gin.Context) {
 	defer file.Close()
 	miniodata, err := io.ReadAll(file)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
@@ -72,6 +75,7 @@ func Publish(c *gin.Context) {
 		minio.PutObjectOptions{UserMetadata: map[string]string{"x-amz-acl": "miniodata-read"}}, // minio.PutObjectOptions，用户可以通过这个参数设置对象的元数据。
 	)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
@@ -104,6 +108,7 @@ func Publish(c *gin.Context) {
 	}
 	err = service.InsertVideos(filename, title, filename+".jpg", id, coverGenerateStatus)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
@@ -164,11 +169,13 @@ func PublishList(c *gin.Context) {
 	idStr := c.Query("user_id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "用户id解析错误"})
 		return
 	}
 	list, err := service.QueryAuthorPublishedVideo(id)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: err.Error()})
 		return
 	}

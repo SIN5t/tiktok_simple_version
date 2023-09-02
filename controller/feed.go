@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -17,12 +18,14 @@ func Feed(c *gin.Context) {
 	latestTimeReq := c.Query("latest_time")                         //字符串类型
 	latestTimeInt64, err := strconv.ParseInt(latestTimeReq, 10, 64) //转为时间戳
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{StatusCode: 1, StatusMsg: "时间戳格式错误"}) //定义1为错误的返回
 		return
 	}
 
 	videoList, nextTimeInt64, err := service.FeedService(userId, latestTimeInt64)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{
 			StatusCode: 1, StatusMsg: err.Error(),
 		})

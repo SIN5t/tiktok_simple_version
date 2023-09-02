@@ -33,6 +33,7 @@ func FollowAction(c *gin.Context) {
 	err = service.FollowAction(userIdInt64, toUserIdInt64, actionTypeInt)
 	if err != nil {
 		//出错了要提示前端app
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
@@ -67,7 +68,7 @@ func FollowList(c *gin.Context) {
 	//id正确，开始查询
 	userList, err := service.FollowList(userIdStr)
 	if err != nil {
-		log.Println(err)
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.UserFollowListResponse{
 			Response:       domain.Response{StatusCode: 1, StatusMsg: err.Error()},
 			UserFollowList: nil,
@@ -109,6 +110,7 @@ func FriendList(c *gin.Context) {
 	userIdStr := c.Query("user_id")
 	friendListList, err := service.FollowList(userIdStr)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusOK, domain.Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
