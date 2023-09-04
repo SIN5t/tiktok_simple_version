@@ -51,7 +51,7 @@ func InsertVideos(videoName string, title string, coverName string, userId int64
 func QueryAuthorPublishedVideo(authorIdInt64 int64) (videoList []domain.Video, err error) {
 	url := dao.MinioClient.EndpointURL().String() + "/" + config.VideoBucketName + "/"
 	picurl := dao.MinioClient.EndpointURL().String() + "/" + config.PictureBucketName + "/"
-	err = dao.DB.Model(&domain.Video{}).
+	err = dao.DB.Model(&domain.Video{}).Preload("Author").
 		Select("id,favorite_count,cover_url,play_url").
 		Where("author_id = ?", authorIdInt64).
 		Order("creat_time desc"). //该字段加了索引
@@ -66,7 +66,6 @@ func QueryAuthorPublishedVideo(authorIdInt64 int64) (videoList []domain.Video, e
 		} else {
 			videoList[i].CoverUrl = picurl + videoList[i].CoverUrl
 		}
-
 		videoList[i].PlayUrl = url + videoList[i].PlayUrl
 	}
 	return
