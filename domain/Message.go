@@ -11,10 +11,10 @@ type ChatResponse struct {
 }
 type Message struct {
 	Id         int64  `json:"id"  gorm:"primaryKey"`
-	ToUserId   int64  `json:"to_user_id" `
-	FromUserId int64  `json:"from_user_id" `
+	ToUserId   int64  `json:"to_user_id" gorm:"index:idx_msg_to_from_time,order:2"`
+	FromUserId int64  `json:"from_user_id" gorm:"index:idx_msg_to_from_time,order:1"`
 	Content    string `json:"content" gorm:"type:varchar(200)"`
-	CreateTime int64  `json:"create_time" gorm:"autoCreateTime:milli;index:;sort:desc"`
+	CreateTime int64  `json:"create_time" gorm:"autoCreateTime:milli;index:idx_msg_to_from_time,order:3;sort:desc"`
 }
 type LocalTime time.Time
 

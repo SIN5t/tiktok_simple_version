@@ -93,5 +93,4 @@ func InitDB() {
 	}
 
 	log.Println("MySQL synchronization is enabled.")
-
 }

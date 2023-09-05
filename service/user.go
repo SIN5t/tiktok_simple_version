@@ -82,6 +82,7 @@ func Login(username, password string) (id int64, token string, err error) {
 	//Select("id,Salt,Pwd").
 	Where("name = ?", username).
 	Find(&user)*/
+	// 创建name索引
 	dao.DB.Model(&domain.User{}).Where("name = ?", username).Find(&user)
 	if user.Id == 0 {
 		err = errors.New("用户不存在！")

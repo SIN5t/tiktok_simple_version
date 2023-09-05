@@ -13,8 +13,8 @@ func main() {
 	config.InitConfig()
 	log.Println("配置读取成功")
 
-	dao.InitMinio()
 	dao.InitDB()
+	dao.InitMinio()
 	log.Println("数据库执行成功")
 
 	//go service.RunMessageServer()
