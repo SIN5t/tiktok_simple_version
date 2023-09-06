@@ -27,7 +27,7 @@ func ScheduleSyncFavVideoList() error {
 }
 func ScheduleSyncRelation() error {
 	scheduler := gocron.NewScheduler(time.Local)
-	_, err := scheduler.Every(60).
+	_, err := scheduler.Every(65).
 		Tag("relationRedis").
 		Second().
 		Do(SyncRelationToMysql)
@@ -39,7 +39,7 @@ func ScheduleSyncRelation() error {
 }
 func ScheduleSyncVideoBeLikedNum() error {
 	scheduler := gocron.NewScheduler(time.Local)
-	_, err := scheduler.Every(10).
+	_, err := scheduler.Every(30).
 		Tag("videoLikedNumRedis").
 		Second().
 		Do(SyncVideoBeLikedNum)
@@ -51,7 +51,7 @@ func ScheduleSyncVideoBeLikedNum() error {
 }
 func ScheduleSyncAuthorBeLikedNum() error {
 	scheduler := gocron.NewScheduler(time.Local)
-	_, err := scheduler.Every(10).
+	_, err := scheduler.Every(30).
 		Tag("authorLikedNumRedis").
 		Second().
 		Do(SyncAuthorLikedNum)

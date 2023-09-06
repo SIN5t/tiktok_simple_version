@@ -35,14 +35,15 @@ func authJWT(c *gin.Context, force bool) {
 
 	// 用户id写入context中
 	c.Set("userId", userId)
+	c.Next()
 }
 
-// 强制鉴权，成功后会把userId写入context中，失败会直接终止请求
+// AuthJWTForce 强制鉴权，成功后会把userId写入context中，失败会直接终止请求
 func AuthJWTForce(c *gin.Context) {
 	authJWT(c, true)
 }
 
-// 非强制鉴权，成功会将userId写入context中，失败会写入0
+// AuthJWTOptional 非强制鉴权，成功会将userId写入context中，失败会写入0
 func AuthJWTOptional(c *gin.Context) {
 	authJWT(c, false)
 }

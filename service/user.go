@@ -21,10 +21,10 @@ import (
 func LoginLimit(ipAddress string) bool {
 	// 错误可忽略
 	times, _ := dao.RdbToken.Get(context.Background(), ipAddress).Int64()
-	if times > 10 {
+	if times > 3 {
 		return false
 	} else {
-		dao.RdbToken.Set(context.Background(), ipAddress, times+1, time.Minute)
+		dao.RdbToken.Set(context.Background(), ipAddress, times+1, time.Second*30)
 	}
 	return true
 }
