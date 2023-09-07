@@ -42,6 +42,11 @@ services:
     command: ["redis-server","/etc/redis/redis.conf"]
 
 
+
+
+
+
+
   mysql-master:
     image: mysql:8.0.13
     container_name: mysql-master

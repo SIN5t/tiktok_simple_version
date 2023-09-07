@@ -23,7 +23,7 @@ func main() {
 
 	router.InitRouter(r)
 
-	err := r.Run(":8088")
+	err := r.Run(":8080")
 	if err != nil {
 		log.Println(err.Error())
 		return

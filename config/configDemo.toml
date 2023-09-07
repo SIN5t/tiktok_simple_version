@@ -1,0 +1,13 @@
+MysqlUser = "root"
+MysqlPswd = "123456"
+MysqlAddr = "localhost:3306"
+MysqlName = "tiktok"
+RedisAddr = "localhost:6379"
+RedisPswd = "123456"
+
+
+#MinioEndpoint = "0.0.0.0:9000"
+MinioEndpoint = "226cecde.r11.cpolar.top"
+MinioAccessKeyID = "minioadmin"
+MinioSecretAccessKey = "minioadmin"
+JWTSecret = "f05ad7412aa192ddc121ba50a64e585943b3e6d8fca4a3a19a8eea26e76496a7"
